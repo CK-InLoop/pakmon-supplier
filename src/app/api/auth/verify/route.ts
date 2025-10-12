@@ -47,8 +47,14 @@ export async function GET(req: NextRequest) {
       where: { token },
     });
 
-    // Redirect to onboarding page
-    return NextResponse.redirect(new URL('/onboarding', req.url));
+    // Return success response
+    return NextResponse.json(
+      { 
+        success: true, 
+        message: 'Email verified successfully' 
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Verification error:', error);
     return NextResponse.json(
