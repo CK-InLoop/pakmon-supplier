@@ -38,7 +38,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           id: supplier.id,
           email: supplier.email,
           name: supplier.name,
-          companyName: supplier.companyName,
+          companyName: supplier.companyName || undefined,
           verified: supplier.verified,
         };
       },
@@ -50,7 +50,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.companyName = (user as any).companyName;
+        token.companyName = (user as any).companyName || undefined;
         token.verified = (user as any).verified;
       }
       return token;
@@ -58,9 +58,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.companyName = token.companyName as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.companyName = token.companyName as string | undefined;
         session.user.verified = token.verified as boolean;
       }
       return session;
