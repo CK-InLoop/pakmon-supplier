@@ -6,8 +6,6 @@ export async function middleware(request: NextRequest) {
   // Use NextAuth's auth function to check session
   const session = await auth();
   
-  console.log('Middleware - Path:', request.nextUrl.pathname, 'Session:', !!session);
-  
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup') ||
@@ -23,17 +21,14 @@ export async function middleware(request: NextRequest) {
 
   // If user has session and tries to access auth pages, redirect to dashboard
   if (session && isAuthPage) {
-    console.log('Redirecting authenticated user from auth page to dashboard');
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // If user doesn't have session and tries to access protected pages
   if (!session && isProtectedPage) {
-    console.log('Redirecting unauthenticated user to login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  console.log('Middleware - Allowing request to proceed');
   return NextResponse.next();
 }
 
