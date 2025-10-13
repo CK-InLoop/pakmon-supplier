@@ -47,8 +47,9 @@ function LoginContent() {
           setError(result.error);
         }
       } else {
-        router.push('/dashboard');
-        router.refresh();
+        console.log('Login successful, redirecting to dashboard...');
+        // Use window.location for a hard redirect to ensure session is properly set
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       setError('An error occurred during login');
