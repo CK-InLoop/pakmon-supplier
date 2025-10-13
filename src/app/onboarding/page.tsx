@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -15,6 +15,22 @@ export default function OnboardingPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  // Get user email from localStorage if not logged in
+  useEffect(() => {
+    if (!session?.user?.email) {
+      const verifiedUser = localStorage.getItem('verifiedUser');
+      if (verifiedUser) {
+        const user = JSON.parse(verifiedUser);
+        setUserEmail(user.email);
+      } else {
+        router.push('/login');
+      }
+    } else {
+      setUserEmail(session.user.email);
+    }
+  }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,12 +38,15 @@ export default function OnboardingPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/supplier/profile', {
-        method: 'PATCH',
+      const response = await fetch('/api/onboarding', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: userEmail,
+          ...formData,
+        }),
       });
 
       const data = await response.json();
@@ -36,7 +55,9 @@ export default function OnboardingPage() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      router.push('/dashboard');
+      // Clear the verified user from localStorage
+      localStorage.removeItem('verifiedUser');
+      router.push('/login?message=Profile completed successfully. Please log in.');
     } catch (err: any) {
       setError(err.message);
     } finally {

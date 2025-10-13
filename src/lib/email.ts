@@ -19,7 +19,7 @@ export async function sendVerificationEmail(email: string, token: string, name: 
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg,rgb(0, 43, 236) 0%,rgb(0, 4, 255) 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display: inline-block; background:rgb(0, 45, 246); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .button { display: inline-block; background:rgb(0, 45, 246); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
               .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
             </style>
           </head>

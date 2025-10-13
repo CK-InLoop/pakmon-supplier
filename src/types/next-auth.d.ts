@@ -6,6 +6,8 @@ declare module 'next-auth' {
       id: string;
       email: string;
       name: string;
+      companyName?: string;
+      verified?: boolean;
     };
   }
 
@@ -13,12 +15,18 @@ declare module 'next-auth' {
     id: string;
     email: string;
     name: string;
+    companyName?: string;
+    verified?: boolean;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
+    name?: string;
+    email?: string;
+    companyName?: string;
+    verified?: boolean;
   }
 }
 

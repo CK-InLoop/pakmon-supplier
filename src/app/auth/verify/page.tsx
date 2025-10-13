@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -30,6 +31,12 @@ function VerifyContent() {
       if (response.ok) {
         setStatus('success');
         setMessage('Email verified successfully!');
+        
+        // Store user info in localStorage for onboarding
+        if (data.user) {
+          localStorage.setItem('verifiedUser', JSON.stringify(data.user));
+        }
+        
         setTimeout(() => {
           router.push('/onboarding');
         }, 2000);

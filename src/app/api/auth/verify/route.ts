@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { signIn } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Update supplier as verified
-    await prisma.supplier.update({
+    const supplier = await prisma.supplier.update({
       where: { email: verificationToken.identifier },
       data: { verified: true },
     });
@@ -47,11 +48,17 @@ export async function GET(req: NextRequest) {
       where: { token },
     });
 
-    // Return success response
+    // Return success response with user data for auto-login
     return NextResponse.json(
       { 
         success: true, 
-        message: 'Email verified successfully' 
+        message: 'Email verified successfully',
+        user: {
+          id: supplier.id,
+          name: supplier.name,
+          email: supplier.email,
+          verified: supplier.verified
+        }
       },
       { status: 200 }
     );

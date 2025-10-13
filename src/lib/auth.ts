@@ -38,6 +38,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           id: supplier.id,
           email: supplier.email,
           name: supplier.name,
+          companyName: supplier.companyName,
+          verified: supplier.verified,
         };
       },
     }),
@@ -46,12 +48,20 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.companyName = (user as any).companyName;
+        token.verified = (user as any).verified;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (token) {
         session.user.id = token.id as string;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.companyName = token.companyName as string;
+        session.user.verified = token.verified as boolean;
       }
       return session;
     },
@@ -63,7 +73,12 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 });
 

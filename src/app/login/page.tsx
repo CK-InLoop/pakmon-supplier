@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message) {
+      setSuccessMessage(message);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +36,16 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        // Provide more helpful error messages
+        if (result.error === 'Invalid password') {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else if (result.error === 'No supplier found with this email') {
+          setError('No account found with this email address. Please sign up first.');
+        } else if (result.error === 'Please verify your email before logging in') {
+          setError('Please check your email and click the verification link before logging in.');
+        } else {
+          setError(result.error);
+        }
       } else {
         router.push('/dashboard');
         router.refresh();
@@ -48,6 +66,12 @@ export default function LoginPage() {
           </h1>
           <p className="text-gray-600 text-sm">Sign in to your supplier account</p>
         </div>
+
+        {successMessage && (
+          <div className="alert-success mb-6">
+            {successMessage}
+          </div>
+        )}
 
         {error && (
           <div className="alert-error mb-6">
@@ -95,6 +119,15 @@ export default function LoginPage() {
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
+          
+          <div className="text-center mt-3">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
@@ -105,6 +138,13 @@ export default function LoginPage() {
           >
             Sign up
           </Link>
+        </div>
+        
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs text-blue-700">
+            <strong>New to Flavi Dairy?</strong> After signing up, you'll receive a verification email. 
+            Click the link to verify your account, then complete your profile before logging in.
+          </p>
         </div>
       </div>
     </div>
