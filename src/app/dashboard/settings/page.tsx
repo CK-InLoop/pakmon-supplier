@@ -182,7 +182,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, companyName: e.target.value })
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="ABC Dairy Products Ltd."
             />
           </div>
@@ -200,7 +200,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="+1 234 567 8900"
             />
           </div>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
                 setFormData({ ...formData, address: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="123 Main Street, City, State, ZIP"
             />
           </div>
@@ -233,7 +233,7 @@ export default function SettingsPage() {
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="Tell us about your company and what products you offer..."
             />
           </div>
