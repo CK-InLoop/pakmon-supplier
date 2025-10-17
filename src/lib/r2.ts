@@ -17,17 +17,52 @@ export async function uploadToR2(
 ): Promise<string> {
   const key = `suppliers/${Date.now()}-${filename}`;
 
-  await r2Client.send(
-    new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
-      Key: key,
-      Body: file,
-      ContentType: contentType,
-    })
-  );
+  try {
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Key: key,
+        Body: file,
+        ContentType: contentType,
+      })
+    );
 
-  // Return public URL
-  return `${process.env.R2_PUBLIC_URL}/${key}`;
+    // Return public URL
+    return `${process.env.R2_PUBLIC_URL}/${key}`;
+  } catch (error: any) {
+    console.error('R2 Upload Error Details:', {
+      code: error.Code || error.name,
+      message: error.message,
+      bucket: process.env.R2_BUCKET_NAME,
+      endpoint: process.env.R2_ENDPOINT,
+    });
+
+    if (error.Code === 'AccessDenied' || error.name === 'AccessDenied') {
+      throw new Error(
+        'Access denied to R2 bucket. Please check: ' +
+        '1) Your R2 API token has "Object Read & Write" permissions, ' +
+        '2) The token is assigned to the correct bucket, ' +
+        '3) The bucket name is correct. ' +
+        'See ENVIRONMENT_SETUP.md for detailed instructions.'
+      );
+    }
+
+    if (error.Code === 'NoSuchBucket' || error.name === 'NoSuchBucket') {
+      throw new Error(
+        `R2 bucket "${process.env.R2_BUCKET_NAME}" does not exist. ` +
+        'Please create the bucket in Cloudflare Dashboard or update R2_BUCKET_NAME in your .env file.'
+      );
+    }
+
+    if (error.Code === 'InvalidArgument' || error.name === 'InvalidArgument') {
+      throw new Error(
+        'Invalid R2 credentials. Please verify your R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY in .env file. ' +
+        'Access keys should be generated from Cloudflare Dashboard → R2 → Manage R2 API Tokens.'
+      );
+    }
+
+    throw error;
+  }
 }
 
 export async function deleteFromR2(key: string): Promise<void> {

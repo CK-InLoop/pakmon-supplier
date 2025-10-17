@@ -37,9 +37,20 @@ export async function POST(req: NextRequest) {
     
     for (const image of images) {
       if (image.size > 0) {
-        const buffer = Buffer.from(await image.arrayBuffer());
-        const url = await uploadToR2(buffer, image.name, image.type);
-        imageUrls.push(url);
+        try {
+          const buffer = Buffer.from(await image.arrayBuffer());
+          const url = await uploadToR2(buffer, image.name, image.type);
+          imageUrls.push(url);
+        } catch (error: any) {
+          console.error('Image upload error:', error);
+          return NextResponse.json(
+            { 
+              error: 'Failed to upload image. ' + error.message,
+              details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
+            },
+            { status: 500 }
+          );
+        }
       }
     }
 
@@ -49,9 +60,20 @@ export async function POST(req: NextRequest) {
     
     for (const file of files) {
       if (file.size > 0) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const url = await uploadToR2(buffer, file.name, file.type);
-        fileUrls.push(url);
+        try {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const url = await uploadToR2(buffer, file.name, file.type);
+          fileUrls.push(url);
+        } catch (error: any) {
+          console.error('File upload error:', error);
+          return NextResponse.json(
+            { 
+              error: 'Failed to upload file. ' + error.message,
+              details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
+            },
+            { status: 500 }
+          );
+        }
       }
     }
 
