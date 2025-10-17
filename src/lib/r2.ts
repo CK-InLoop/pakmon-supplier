@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+// Use R2 token for authentication (not AWS S3 credentials)
 const r2Client = new S3Client({
   region: 'auto',
   endpoint: process.env.R2_ENDPOINT,
@@ -8,6 +9,8 @@ const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
+  // Add R2-specific configuration
+  forcePathStyle: true,
 });
 
 export async function uploadToR2(
@@ -42,8 +45,9 @@ export async function uploadToR2(
         'Access denied to R2 bucket. Please check: ' +
         '1) Your R2 API token has "Object Read & Write" permissions, ' +
         '2) The token is assigned to the correct bucket, ' +
-        '3) The bucket name is correct. ' +
-        'See ENVIRONMENT_SETUP.md for detailed instructions.'
+        '3) The bucket name is correct (current: "' + process.env.R2_BUCKET_NAME + '"). ' +
+        '4) Make sure you\'re using the right bucket name (chatbot-flavi vs chat-flavi). ' +
+        'See R2_CONFIGURATION_FIX.md for detailed instructions.'
       );
     }
 
