@@ -92,5 +92,61 @@ export async function getPresignedUrl(key: string, expiresIn: number = 3600): Pr
   return await getSignedUrl(r2Client, command, { expiresIn });
 }
 
+// Generate signed URLs for images and PDFs to display them
+export async function getImageUrl(imageUrl: string, expiresIn: number = 3600): Promise<string> {
+  try {
+    // Extract key from full URL if it's a full URL
+    const key = imageUrl.includes(process.env.R2_PUBLIC_URL!)
+      ? imageUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+      : imageUrl;
+
+    return await getPresignedUrl(key, expiresIn);
+  } catch (error) {
+    console.error('Error generating image URL:', error);
+    // Return original URL as fallback
+    return imageUrl;
+  }
+}
+
+export async function getPdfUrl(pdfUrl: string, expiresIn: number = 3600): Promise<string> {
+  try {
+    // Extract key from full URL if it's a full URL
+    const key = pdfUrl.includes(process.env.R2_PUBLIC_URL!)
+      ? pdfUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+      : pdfUrl;
+
+    return await getPresignedUrl(key, expiresIn);
+  } catch (error) {
+    console.error('Error generating PDF URL:', error);
+    // Return original URL as fallback
+    return pdfUrl;
+  }
+}
+
+// Generate multiple signed URLs for arrays of images/PDFs
+export async function getImageUrls(imageUrls: string[], expiresIn: number = 3600): Promise<string[]> {
+  try {
+    const signedUrls = await Promise.all(
+      imageUrls.map(url => getImageUrl(url, expiresIn))
+    );
+    return signedUrls;
+  } catch (error) {
+    console.error('Error generating image URLs:', error);
+    return imageUrls; // Return original URLs as fallback
+  }
+}
+
+export async function getPdfUrls(pdfUrls: string[], expiresIn: number = 3600): Promise<string[]> {
+  try {
+    const signedUrls = await Promise.all(
+      pdfUrls.map(url => getPdfUrl(url, expiresIn))
+    );
+    return signedUrls;
+  } catch (error) {
+    console.error('Error generating PDF URLs:', error);
+    return pdfUrls; // Return original URLs as fallback
+  }
+}
+
 export { r2Client };
 

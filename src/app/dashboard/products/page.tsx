@@ -12,6 +12,8 @@ interface Product {
   tags: string[];
   imageUrls: string[];
   fileUrls: string[];
+  signedImageUrls?: string[];
+  signedFileUrls?: string[];
   isApproved: boolean;
   matchCount: number;
   viewCount: number;
@@ -31,7 +33,52 @@ export default function ProductsPage() {
     try {
       const response = await fetch('/api/products/list');
       const data = await response.json();
-      setProducts(data.products);
+      
+      // Generate signed URLs for images and PDFs
+      const productsWithSignedUrls = await Promise.all(
+        data.products.map(async (product: Product) => {
+          try {
+            // Generate signed URLs for images
+            const imageResponse = await fetch('/api/files/signed-url', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'images',
+                urls: product.imageUrls,
+                expiresIn: 3600 // 1 hour
+              })
+            });
+            const imageData = await imageResponse.json();
+            
+            // Generate signed URLs for PDFs
+            const pdfResponse = await fetch('/api/files/signed-url', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'pdfs',
+                urls: product.fileUrls,
+                expiresIn: 3600 // 1 hour
+              })
+            });
+            const pdfData = await pdfResponse.json();
+            
+            return {
+              ...product,
+              signedImageUrls: imageData.signedUrls || product.imageUrls,
+              signedFileUrls: pdfData.signedUrls || product.fileUrls
+            };
+          } catch (error) {
+            console.error('Error generating signed URLs for product:', product.id, error);
+            return {
+              ...product,
+              signedImageUrls: product.imageUrls,
+              signedFileUrls: product.fileUrls
+            };
+          }
+        })
+      );
+      
+      setProducts(productsWithSignedUrls);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -110,7 +157,25 @@ export default function ProductsPage() {
               className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
             >
               {/* Product Image */}
-              {product.imageUrls.length > 0 ? (
+              {product.signedImageUrls && product.signedImageUrls.length > 0 ? (
+                <div className="h-48 bg-gray-200 relative group">
+                  <img
+                    src={product.signedImageUrls[0]}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to original URL if signed URL fails
+                      (e.target as HTMLImageElement).src = product.imageUrls[0];
+                    }}
+                  />
+                  {/* Image count indicator */}
+                  {product.signedImageUrls.length > 1 && (
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                      +{product.signedImageUrls.length - 1} more
+                    </div>
+                  )}
+                </div>
+              ) : product.imageUrls.length > 0 ? (
                 <div className="h-48 bg-gray-200">
                   <img
                     src={product.imageUrls[0]}
@@ -168,6 +233,26 @@ export default function ProductsPage() {
                     )}
                   </div>
                 )}
+
+                {/* Files Indicator */}
+                <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+                  {product.signedFileUrls && product.signedFileUrls.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                      {product.signedFileUrls.length} PDF{product.signedFileUrls.length > 1 ? 's' : ''}
+                    </div>
+                  )}
+                  {product.signedImageUrls && product.signedImageUrls.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                      </svg>
+                      {product.signedImageUrls.length} Image{product.signedImageUrls.length > 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
 
                 {/* Stats */}
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">

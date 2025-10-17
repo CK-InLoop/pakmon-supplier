@@ -12,6 +12,8 @@ interface Product {
   tags: string[];
   imageUrls: string[];
   fileUrls: string[];
+  signedImageUrls?: string[];
+  signedFileUrls?: string[];
 }
 
 export default function EditProductPage() {
@@ -48,7 +50,54 @@ export default function EditProductPage() {
         throw new Error(data.error);
       }
 
-      setProduct(data.product);
+      // Generate signed URLs for existing images and PDFs
+      let signedImageUrls: string[] = [];
+      let signedFileUrls: string[] = [];
+
+      try {
+        // Generate signed URLs for images
+        if (data.product.imageUrls.length > 0) {
+          const imageResponse = await fetch('/api/files/signed-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'images',
+              urls: data.product.imageUrls,
+              expiresIn: 3600
+            })
+          });
+          const imageData = await imageResponse.json();
+          signedImageUrls = imageData.signedUrls || data.product.imageUrls;
+        }
+
+        // Generate signed URLs for PDFs
+        if (data.product.fileUrls.length > 0) {
+          const pdfResponse = await fetch('/api/files/signed-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'pdfs',
+              urls: data.product.fileUrls,
+              expiresIn: 3600
+            })
+          });
+          const pdfData = await pdfResponse.json();
+          signedFileUrls = pdfData.signedUrls || data.product.fileUrls;
+        }
+      } catch (error) {
+        console.error('Error generating signed URLs:', error);
+        // Use original URLs as fallback
+        signedImageUrls = data.product.imageUrls;
+        signedFileUrls = data.product.fileUrls;
+      }
+
+      const productWithSignedUrls = {
+        ...data.product,
+        signedImageUrls,
+        signedFileUrls
+      };
+
+      setProduct(productWithSignedUrls);
       setFormData({
         title: data.product.title,
         description: data.product.description,
