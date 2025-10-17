@@ -23,7 +23,7 @@ export async function uploadToR2(
   try {
     await r2Client.send(
       new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME!,
+        Bucket: "chatbot-flavi", // Using the correct bucket name directly
         Key: key,
         Body: file,
         ContentType: contentType,
@@ -36,7 +36,7 @@ export async function uploadToR2(
     console.error('R2 Upload Error Details:', {
       code: error.Code || error.name,
       message: error.message,
-      bucket: process.env.R2_BUCKET_NAME,
+      bucket: "chatbot-flavi",
       endpoint: process.env.R2_ENDPOINT,
     });
 
@@ -45,7 +45,7 @@ export async function uploadToR2(
         'Access denied to R2 bucket. Please check: ' +
         '1) Your R2 API token has "Object Read & Write" permissions, ' +
         '2) The token is assigned to the correct bucket, ' +
-        '3) The bucket name is correct (current: "' + process.env.R2_BUCKET_NAME + '"). ' +
+        '3) The bucket name is correct (current: "chatbot-flavi"). ' +
         '4) Make sure you\'re using the right bucket name (chatbot-flavi vs chat-flavi). ' +
         'See R2_CONFIGURATION_FIX.md for detailed instructions.'
       );
@@ -53,7 +53,7 @@ export async function uploadToR2(
 
     if (error.Code === 'NoSuchBucket' || error.name === 'NoSuchBucket') {
       throw new Error(
-        `R2 bucket "${process.env.R2_BUCKET_NAME}" does not exist. ` +
+        `R2 bucket "chatbot-flavi" does not exist. ` +
         'Please create the bucket in Cloudflare Dashboard or update R2_BUCKET_NAME in your .env file.'
       );
     }
@@ -77,7 +77,7 @@ export async function deleteFromR2(key: string): Promise<void> {
 
   await r2Client.send(
     new DeleteObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: "chatbot-flavi", // Using the correct bucket name directly
       Key: actualKey,
     })
   );
@@ -85,7 +85,7 @@ export async function deleteFromR2(key: string): Promise<void> {
 
 export async function getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
   const command = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME!,
+    Bucket: "chatbot-flavi", // Using the correct bucket name directly
     Key: key,
   });
 
