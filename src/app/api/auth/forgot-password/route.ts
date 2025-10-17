@@ -14,12 +14,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if supplier exists
-    const supplier = await prisma.supplier.findUnique({
+    // Check if user exists
+    const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!supplier) {
+    if (!user) {
       return NextResponse.json(
         { error: 'No account found with this email address' },
         { status: 404 }
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Send reset email
-    await sendPasswordResetEmail(email, resetToken, supplier.name);
+    await sendPasswordResetEmail(email, resetToken, user.name || 'User');
 
     return NextResponse.json({
       message: 'Password reset instructions have been sent to your email',

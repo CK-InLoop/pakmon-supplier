@@ -37,10 +37,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Update supplier as verified
-    const supplier = await prisma.supplier.update({
+    // Update user as verified
+    const user = await prisma.user.update({
       where: { email: verificationToken.identifier },
-      data: { verified: true },
+      data: { emailVerified: true },
     });
 
     // Delete verification token
@@ -54,10 +54,11 @@ export async function GET(req: NextRequest) {
         success: true, 
         message: 'Email verified successfully',
         user: {
-          id: supplier.id,
-          name: supplier.name,
-          email: supplier.email,
-          verified: supplier.verified
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          verified: user.emailVerified
         }
       },
       { status: 200 }

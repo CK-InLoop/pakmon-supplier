@@ -39,7 +39,7 @@ function LoginContent() {
         // Provide more helpful error messages
         if (result.error === 'Invalid password') {
           setError('Invalid email or password. Please check your credentials and try again.');
-        } else if (result.error === 'No supplier found with this email') {
+        } else if (result.error === 'No user found with this email') {
           setError('No account found with this email address. Please sign up first.');
         } else if (result.error === 'Please verify your email before logging in') {
           setError('Please check your email and click the verification link before logging in.');

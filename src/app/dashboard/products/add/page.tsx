@@ -8,9 +8,13 @@ export default function AddProductPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    specs: '',
+    shortDescription: '',
+    fullDescription: '',
+    specifications: '',
+    category: 'Dairy Equipment',
     tags: '',
+    priceRange: '',
+    capacity: '',
   });
   const [images, setImages] = useState<File[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -62,9 +66,13 @@ export default function AddProductPage() {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('specs', formData.specs);
+      formDataToSend.append('shortDescription', formData.shortDescription);
+      formDataToSend.append('fullDescription', formData.fullDescription);
+      formDataToSend.append('specifications', formData.specifications);
+      formDataToSend.append('category', formData.category);
       formDataToSend.append('tags', formData.tags);
+      formDataToSend.append('priceRange', formData.priceRange);
+      formDataToSend.append('capacity', formData.capacity);
 
       images.forEach((image) => {
         formDataToSend.append('images', image);
@@ -132,17 +140,33 @@ export default function AddProductPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description *
+              Short Description *
             </label>
             <textarea
               required
-              value={formData.description}
+              value={formData.shortDescription}
               onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
+                setFormData({ ...formData, shortDescription: e.target.value })
+              }
+              rows={2}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+              placeholder="Brief description of your product..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Full Description *
+            </label>
+            <textarea
+              required
+              value={formData.fullDescription}
+              onChange={(e) =>
+                setFormData({ ...formData, fullDescription: e.target.value })
               }
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-              placeholder="Describe your product..."
+              placeholder="Detailed description of your product..."
             />
           </div>
 
@@ -151,9 +175,9 @@ export default function AddProductPage() {
               Specifications
             </label>
             <textarea
-              value={formData.specs}
+              value={formData.specifications}
               onChange={(e) =>
-                setFormData({ ...formData, specs: e.target.value })
+                setFormData({ ...formData, specifications: e.target.value })
               }
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
@@ -174,6 +198,57 @@ export default function AddProductPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="e.g., dairy, cream, organic"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+            >
+              <option value="Dairy Equipment">Dairy Equipment</option>
+              <option value="Processing Machinery">Processing Machinery</option>
+              <option value="Storage Solutions">Storage Solutions</option>
+              <option value="Quality Control">Quality Control</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price Range
+              </label>
+              <input
+                type="text"
+                value={formData.priceRange}
+                onChange={(e) =>
+                  setFormData({ ...formData, priceRange: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                placeholder="e.g., ₹50,000 - ₹1,00,000"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Capacity
+              </label>
+              <input
+                type="text"
+                value={formData.capacity}
+                onChange={(e) =>
+                  setFormData({ ...formData, capacity: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                placeholder="e.g., 2000 L/day"
+              />
+            </div>
           </div>
         </div>
 

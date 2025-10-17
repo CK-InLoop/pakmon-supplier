@@ -3,8 +3,8 @@ interface ChunkMetadata {
   supplierId: string;
   title: string;
   tags: string[];
-  imageUrls: string[];
-  fileUrls: string[];
+  images: string[];
+  pdfFiles: string[];
   timestamp?: number;
   folder?: string;
   context?: string;
@@ -96,24 +96,27 @@ export async function createProductChunks(product: {
   id: string;
   supplierId: string;
   title: string;
-  description: string;
-  specs?: string | null;
+  shortDescription: string;
+  fullDescription: string;
+  specifications?: string | null;
   tags: string[];
-  imageUrls: string[];
-  fileUrls: string[];
+  images: string[];
+  pdfFiles: string[];
 }): Promise<AutoRAGChunk[]> {
   const fullText = `
 Title: ${product.title}
 
-Description: ${product.description}
+Short Description: ${product.shortDescription}
 
-${product.specs ? `Specifications: ${product.specs}` : ''}
+Full Description: ${product.fullDescription}
+
+${product.specifications ? `Specifications: ${product.specifications}` : ''}
 
 Tags: ${product.tags.join(', ')}
 
-Images: ${product.imageUrls.join(', ')}
+Images: ${product.images.join(', ')}
 
-Files: ${product.fileUrls.join(', ')}
+Files: ${product.pdfFiles.join(', ')}
   `.trim();
 
   const textChunks = chunkText(fullText);
@@ -126,8 +129,8 @@ Files: ${product.fileUrls.join(', ')}
       supplierId: product.supplierId,
       title: product.title,
       tags: product.tags,
-      imageUrls: product.imageUrls,
-      fileUrls: product.fileUrls,
+      images: product.images,
+      pdfFiles: product.pdfFiles,
       context: `Product from Flavi Dairy Solutions supplier. Title: ${product.title}`,
     },
   }));

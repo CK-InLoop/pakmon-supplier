@@ -16,30 +16,38 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           throw new Error('Missing credentials');
         }
 
-        const supplier = await prisma.supplier.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
+          include: {
+            supplier: true,
+          },
         });
 
-        if (!supplier) {
-          throw new Error('No supplier found with this email');
+        if (!user) {
+          throw new Error('No user found with this email');
         }
 
-        if (!supplier.verified) {
+        if (!user.emailVerified) {
           throw new Error('Please verify your email before logging in');
         }
 
-        const isPasswordValid = await compare(credentials.password as string, supplier.password);
+        if (!user.password) {
+          throw new Error('Password not set for this account');
+        }
+
+        const isPasswordValid = await compare(credentials.password as string, user.password);
 
         if (!isPasswordValid) {
           throw new Error('Invalid password');
         }
 
         return {
-          id: supplier.id,
-          email: supplier.email,
-          name: supplier.name,
-          companyName: supplier.companyName || undefined,
-          verified: supplier.verified,
+          id: user.id,
+          email: user.email,
+          name: user.name || '',
+          role: user.role,
+          companyName: user.supplier?.companyName || undefined,
+          verified: user.emailVerified,
         };
       },
     }),
@@ -50,6 +58,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = (user as any).role;
         token.companyName = (user as any).companyName || undefined;
         token.verified = (user as any).verified;
       }
@@ -60,6 +69,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.email = token.email as string;
+        session.user.role = token.role as string;
         session.user.companyName = token.companyName as string | undefined;
         session.user.verified = token.verified as boolean;
       }

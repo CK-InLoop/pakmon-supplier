@@ -7,16 +7,20 @@ import { Plus, Edit, Trash2, CheckCircle, Clock, Eye } from 'lucide-react';
 interface Product {
   id: string;
   title: string;
-  description: string;
-  specs?: string;
-  tags: string[];
-  imageUrls: string[];
-  fileUrls: string[];
+  shortDescription: string;
+  fullDescription: string;
+  specifications?: string;
+  images: string[];
+  pdfFiles: string[];
   signedImageUrls?: string[];
   signedFileUrls?: string[];
-  isApproved: boolean;
-  matchCount: number;
+  category: string;
+  tags: string[];
+  priceRange?: string;
+  capacity?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   viewCount: number;
+  matchCount: number;
   createdAt: string;
 }
 
@@ -44,7 +48,7 @@ export default function ProductsPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 type: 'images',
-                urls: product.imageUrls,
+                urls: product.images,
                 expiresIn: 3600 // 1 hour
               })
             });
@@ -56,7 +60,7 @@ export default function ProductsPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 type: 'pdfs',
-                urls: product.fileUrls,
+                urls: product.pdfFiles,
                 expiresIn: 3600 // 1 hour
               })
             });
@@ -64,15 +68,15 @@ export default function ProductsPage() {
             
             return {
               ...product,
-              signedImageUrls: imageData.signedUrls || product.imageUrls,
-              signedFileUrls: pdfData.signedUrls || product.fileUrls
+              signedImageUrls: imageData.signedUrls || product.images,
+              signedFileUrls: pdfData.signedUrls || product.pdfFiles
             };
           } catch (error) {
             console.error('Error generating signed URLs for product:', product.id, error);
             return {
               ...product,
-              signedImageUrls: product.imageUrls,
-              signedFileUrls: product.fileUrls
+              signedImageUrls: product.images,
+              signedFileUrls: product.pdfFiles
             };
           }
         })
@@ -165,7 +169,7 @@ export default function ProductsPage() {
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       // Fallback to original URL if signed URL fails
-                      (e.target as HTMLImageElement).src = product.imageUrls[0];
+                      (e.target as HTMLImageElement).src = product.images[0];
                     }}
                   />
                   {/* Image count indicator */}
@@ -175,10 +179,10 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
-              ) : product.imageUrls.length > 0 ? (
+              ) : product.images.length > 0 ? (
                 <div className="h-48 bg-gray-200">
                   <img
-                    src={product.imageUrls[0]}
+                    src={product.images[0]}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
@@ -192,10 +196,15 @@ export default function ProductsPage() {
               <div className="p-6">
                 {/* Status Badge */}
                 <div className="mb-3">
-                  {product.isApproved ? (
+                  {product.status === 'APPROVED' ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium">
                       <CheckCircle className="w-4 h-4" />
                       Approved
+                    </span>
+                  ) : product.status === 'REJECTED' ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full font-medium">
+                      <Clock className="w-4 h-4" />
+                      Rejected
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full font-medium">
@@ -212,7 +221,7 @@ export default function ProductsPage() {
 
                 {/* Product Description */}
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {product.description}
+                  {product.shortDescription}
                 </p>
 
                 {/* Tags */}

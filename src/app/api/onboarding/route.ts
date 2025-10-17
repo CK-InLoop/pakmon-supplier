@@ -13,50 +13,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find the verified supplier by email
-    const supplier = await prisma.supplier.findUnique({
+    // Find the verified user by email
+    const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!supplier) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Supplier not found' },
+        { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    if (!supplier.verified) {
+    if (!user.emailVerified) {
       return NextResponse.json(
         { error: 'Email not verified' },
         { status: 400 }
       );
     }
 
-    // Update the supplier profile
-    const updatedSupplier = await prisma.supplier.update({
-      where: { id: supplier.id },
-      data: {
+    if (user.role !== 'SUPPLIER') {
+      return NextResponse.json(
+        { error: 'Only suppliers can complete onboarding' },
+        { status: 400 }
+      );
+    }
+
+    // Create or update the supplier profile
+    const supplier = await prisma.supplier.upsert({
+      where: { userId: user.id },
+      update: {
         companyName,
-        phone,
+        contactPhone: phone,
         address,
         description,
+        contactEmail: email,
+      },
+      create: {
+        userId: user.id,
+        companyName,
+        contactPhone: phone,
+        address,
+        description,
+        contactEmail: email,
       },
       select: {
         id: true,
-        name: true,
-        email: true,
         companyName: true,
-        phone: true,
+        contactPhone: true,
         address: true,
         description: true,
-        verified: true,
+        contactEmail: true,
+        status: true,
         createdAt: true,
       },
     });
 
     return NextResponse.json({
       message: 'Profile completed successfully',
-      supplier: updatedSupplier,
+      supplier,
     });
   } catch (error) {
     console.error('Onboarding error:', error);

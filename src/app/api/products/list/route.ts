@@ -13,9 +13,21 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
     const products = await prisma.product.findMany({
       where: {
-        supplierId: session.user.id,
+        supplierId: supplier.id,
       },
       orderBy: {
         createdAt: 'desc',

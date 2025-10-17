@@ -24,14 +24,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if supplier already exists
-    const existingSupplier = await prisma.supplier.findUnique({
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (existingSupplier) {
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'A supplier with this email already exists' },
+        { error: 'A user with this email already exists' },
         { status: 400 }
       );
     }
@@ -39,13 +39,14 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create supplier
-    const supplier = await prisma.supplier.create({
+    // Create user
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        verified: false,
+        emailVerified: false,
+        role: 'SUPPLIER', // Default to supplier role for now
       },
     });
 
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         message: 'Account created successfully. Please check your email to verify your account.',
-        supplierId: supplier.id,
+        userId: user.id,
       },
       { status: 201 }
     );

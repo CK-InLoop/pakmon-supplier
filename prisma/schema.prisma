@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema for Flavi Dairy Solutions
+// Provider: MongoDB
 
 generator client {
   provider = "prisma-client-js"
@@ -11,38 +11,95 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  CUSTOMER
+  SUPPLIER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ProductStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  email             String   @unique
+  name              String?
+  password          String?  // hashed
+  role              UserRole @default(CUSTOMER)
+  emailVerified     Boolean  @default(false)
+  verificationToken String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Customer relations
+  chats             Chat[]
+  liked             Liked[]
+  inquiries         Inquiry[]
+  sessions          Session[]
+
+  // Supplier relations (if role is SUPPLIER)
+  supplier          Supplier?
+  
+  @@map("users")
+}
+
 model Supplier {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  email       String    @unique
-  password    String
-  verified    Boolean   @default(false)
-  companyName String?
-  phone       String?
-  address     String?
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @unique @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName     String
+  description     String?
+  contactEmail    String
+  contactPhone    String?
+  website         String?
+  address         String?
+  logo            String?
+  status          ProductStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  products        Product[]
+  inquiries       Inquiry[]
   
   @@map("suppliers")
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  supplierId  String   @db.ObjectId
-  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  title       String
-  description String
-  specs       String?
-  tags        String[]
-  imageUrls   String[]
-  fileUrls    String[]
-  isApproved  Boolean  @default(false)
-  viewCount   Int      @default(0)
-  matchCount  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId      String   @db.ObjectId
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  title           String
+  shortDescription String
+  fullDescription String
+  specifications  String?  // JSON string
+  
+  images          String[] // Array of image URLs
+  videoUrl        String?  // YouTube embed URL
+  pdfFiles        String[] // Array of PDF file URLs
+  
+  category        String
+  tags            String[] // e.g., ["pasteurizer", "dairy", "2000L"]
+  
+  priceRange      String?  // e.g., "₹50,000 - ₹1,00,000"
+  capacity        String?  // e.g., "2000 L/day"
+  
+  status          ProductStatus @default(PENDING)
+  
+  // Analytics fields
+  viewCount       Int      @default(0)
+  matchCount      Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  liked           Liked[]
+  chatReferences  ChatProductReference[]
+  inquiries       Inquiry[]
   
   @@map("products")
 }
@@ -79,6 +136,7 @@ model Session {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
   userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expires      DateTime
 
   @@map("sessions")
@@ -92,4 +150,70 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@map("password_reset_tokens")
+}
+
+model Chat {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  query           String   // User's question/requirement
+  response        String   // Bot's response message
+  
+  createdAt       DateTime @default(now())
+  
+  products        ChatProductReference[]
+  
+  @@map("chats")
+}
+
+model ChatProductReference {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId          String   @db.ObjectId
+  chat            Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  productId       String   @db.ObjectId
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  relevanceScore  Float?   // Score from AI
+  
+  @@map("chat_product_references")
+}
+
+model Liked {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId       String   @db.ObjectId
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([userId, productId])
+  @@map("liked")
+}
+
+model Inquiry {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId       String   @db.ObjectId
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  supplierId      String   @db.ObjectId
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  message         String
+  contactName     String
+  contactEmail    String
+  contactPhone    String?
+  
+  status          String   @default("pending") // pending, responded, closed
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("inquiries")
 }

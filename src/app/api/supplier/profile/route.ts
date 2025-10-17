@@ -13,27 +13,33 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supplier = await prisma.supplier.findUnique({
+    // Find user with supplier profile
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        companyName: true,
-        phone: true,
-        address: true,
-        description: true,
-        verified: true,
-        createdAt: true,
+      include: {
+        supplier: true,
       },
     });
 
-    if (!supplier) {
+    if (!user || !user.supplier) {
       return NextResponse.json(
-        { error: 'Supplier not found' },
+        { error: 'Supplier profile not found' },
         { status: 404 }
       );
     }
+
+    const supplier = {
+      id: user.supplier.id,
+      name: user.name,
+      email: user.email,
+      companyName: user.supplier.companyName,
+      phone: user.supplier.contactPhone,
+      address: user.supplier.address,
+      description: user.supplier.description,
+      verified: user.emailVerified,
+      createdAt: user.supplier.createdAt,
+    };
+
 
     return NextResponse.json({ supplier });
   } catch (error) {
@@ -59,23 +65,23 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { companyName, phone, address, description } = body;
 
+    // Update supplier profile
     const updatedSupplier = await prisma.supplier.update({
-      where: { id: session.user.id },
+      where: { userId: session.user.id },
       data: {
         companyName,
-        phone,
+        contactPhone: phone,
         address,
         description,
       },
       select: {
         id: true,
-        name: true,
-        email: true,
         companyName: true,
-        phone: true,
+        contactPhone: true,
         address: true,
         description: true,
-        verified: true,
+        contactEmail: true,
+        status: true,
         createdAt: true,
       },
     });

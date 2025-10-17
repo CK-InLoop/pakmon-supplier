@@ -13,17 +13,29 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
     // Get all products for this supplier
     const products = await prisma.product.findMany({
       where: {
-        supplierId: session.user.id,
+        supplierId: supplier.id,
       },
       select: {
         id: true,
         title: true,
         matchCount: true,
         viewCount: true,
-        isApproved: true,
+        status: true,
         createdAt: true,
       },
       orderBy: {
@@ -33,7 +45,9 @@ export async function GET(req: NextRequest) {
 
     // Calculate summary statistics
     const totalProducts = products.length;
-    const approvedProducts = products.filter(p => p.isApproved).length;
+    const approvedProducts = products.filter(p => p.status === 'APPROVED').length;
+    const pendingProducts = products.filter(p => p.status === 'PENDING').length;
+    const rejectedProducts = products.filter(p => p.status === 'REJECTED').length;
     const totalMatches = products.reduce((sum, p) => sum + p.matchCount, 0);
     const totalViews = products.reduce((sum, p) => sum + p.viewCount, 0);
 
@@ -41,7 +55,8 @@ export async function GET(req: NextRequest) {
       summary: {
         totalProducts,
         approvedProducts,
-        pendingProducts: totalProducts - approvedProducts,
+        pendingProducts,
+        rejectedProducts,
         totalMatches,
         totalViews,
       },

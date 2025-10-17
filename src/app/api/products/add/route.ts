@@ -18,15 +18,19 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     
     const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
-    const specs = formData.get('specs') as string | null;
+    const shortDescription = formData.get('shortDescription') as string;
+    const fullDescription = formData.get('fullDescription') as string;
+    const specifications = formData.get('specifications') as string | null;
+    const category = formData.get('category') as string;
     const tagsString = formData.get('tags') as string;
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
+    const priceRange = formData.get('priceRange') as string | null;
+    const capacity = formData.get('capacity') as string | null;
 
     // Validation
-    if (!title || !description) {
+    if (!title || !shortDescription || !fullDescription) {
       return NextResponse.json(
-        { error: 'Title and description are required' },
+        { error: 'Title, short description, and full description are required' },
         { status: 400 }
       );
     }
@@ -77,17 +81,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found. Please complete onboarding first.' },
+        { status: 404 }
+      );
+    }
+
     // Create product in database
     const product = await prisma.product.create({
       data: {
-        supplierId: session.user.id,
+        supplierId: supplier.id,
         title,
-        description,
-        specs,
+        shortDescription,
+        fullDescription,
+        specifications,
+        images: imageUrls,
+        pdfFiles: fileUrls,
+        category,
         tags,
-        imageUrls,
-        fileUrls,
-        isApproved: false,
+        priceRange,
+        capacity,
+        status: 'PENDING',
       },
     });
 

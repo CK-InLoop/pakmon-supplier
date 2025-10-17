@@ -20,10 +20,22 @@ export async function GET(
 
     const { id } = await params;
 
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
     const product = await prisma.product.findFirst({
       where: {
         id,
-        supplierId: session.user.id,
+        supplierId: supplier.id,
       },
     });
 
@@ -60,11 +72,23 @@ export async function PATCH(
 
     const { id } = await params;
 
-    // Check if product exists and belongs to the user
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if product exists and belongs to the supplier
     const existingProduct = await prisma.product.findFirst({
       where: {
         id,
-        supplierId: session.user.id,
+        supplierId: supplier.id,
       },
     });
 
@@ -84,14 +108,14 @@ export async function PATCH(
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
 
     // Handle new image uploads
-    let imageUrls = [...existingProduct.imageUrls];
+    let images = [...existingProduct.images];
     const newImages = formData.getAll('newImages') as File[];
     
     for (const image of newImages) {
       if (image.size > 0) {
         const buffer = Buffer.from(await image.arrayBuffer());
         const url = await uploadToR2(buffer, image.name, image.type);
-        imageUrls.push(url);
+        images.push(url);
       }
     }
 
@@ -101,19 +125,19 @@ export async function PATCH(
       const imagesToDelete = deletedImages.split(',');
       for (const imageUrl of imagesToDelete) {
         await deleteFromR2(imageUrl);
-        imageUrls = imageUrls.filter(url => url !== imageUrl);
+        images = images.filter(url => url !== imageUrl);
       }
     }
 
     // Handle new file uploads
-    let fileUrls = [...existingProduct.fileUrls];
+    let pdfFiles = [...existingProduct.pdfFiles];
     const newFiles = formData.getAll('newFiles') as File[];
     
     for (const file of newFiles) {
       if (file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const url = await uploadToR2(buffer, file.name, file.type);
-        fileUrls.push(url);
+        pdfFiles.push(url);
       }
     }
 
@@ -123,7 +147,7 @@ export async function PATCH(
       const filesToDelete = deletedFiles.split(',');
       for (const fileUrl of filesToDelete) {
         await deleteFromR2(fileUrl);
-        fileUrls = fileUrls.filter(url => url !== fileUrl);
+        pdfFiles = pdfFiles.filter(url => url !== fileUrl);
       }
     }
 
@@ -132,11 +156,12 @@ export async function PATCH(
       where: { id },
       data: {
         title: title || existingProduct.title,
-        description: description || existingProduct.description,
-        specs: specs !== null ? specs : existingProduct.specs,
+        shortDescription: description || existingProduct.shortDescription,
+        fullDescription: description || existingProduct.fullDescription,
+        specifications: specs !== null ? specs : existingProduct.specifications,
         tags: tags.length > 0 ? tags : existingProduct.tags,
-        imageUrls,
-        fileUrls,
+        images,
+        pdfFiles,
       },
     });
 
@@ -182,10 +207,22 @@ export async function DELETE(
 
     const { id } = await params;
 
+    // First, get the supplier profile for this user
+    const supplier = await prisma.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
     const product = await prisma.product.findFirst({
       where: {
         id,
-        supplierId: session.user.id,
+        supplierId: supplier.id,
       },
     });
 
@@ -197,7 +234,7 @@ export async function DELETE(
     }
 
     // Delete files from R2
-    for (const imageUrl of product.imageUrls) {
+    for (const imageUrl of product.images) {
       try {
         await deleteFromR2(imageUrl);
       } catch (error) {
@@ -205,7 +242,7 @@ export async function DELETE(
       }
     }
 
-    for (const fileUrl of product.fileUrls) {
+    for (const fileUrl of product.pdfFiles) {
       try {
         await deleteFromR2(fileUrl);
       } catch (error) {
