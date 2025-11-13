@@ -7,11 +7,12 @@ import { X, FileText, Image as ImageIcon } from 'lucide-react';
 interface Product {
   id: string;
   title: string;
-  description: string;
-  specs?: string;
+  shortDescription: string;
+  fullDescription: string;
+  specifications?: string;
   tags: string[];
-  imageUrls: string[];
-  fileUrls: string[];
+  images: string[];
+  pdfFiles: string[];
   signedImageUrls?: string[];
   signedFileUrls?: string[];
 }
@@ -56,39 +57,39 @@ export default function EditProductPage() {
 
       try {
         // Generate signed URLs for images
-        if (data.product.imageUrls.length > 0) {
+        if (data.product.images && data.product.images.length > 0) {
           const imageResponse = await fetch('/api/files/signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'images',
-              urls: data.product.imageUrls,
+              urls: data.product.images,
               expiresIn: 3600
             })
           });
           const imageData = await imageResponse.json();
-          signedImageUrls = imageData.signedUrls || data.product.imageUrls;
+          signedImageUrls = imageData.signedUrls || data.product.images;
         }
 
         // Generate signed URLs for PDFs
-        if (data.product.fileUrls.length > 0) {
+        if (data.product.pdfFiles && data.product.pdfFiles.length > 0) {
           const pdfResponse = await fetch('/api/files/signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'pdfs',
-              urls: data.product.fileUrls,
+              urls: data.product.pdfFiles,
               expiresIn: 3600
             })
           });
           const pdfData = await pdfResponse.json();
-          signedFileUrls = pdfData.signedUrls || data.product.fileUrls;
+          signedFileUrls = pdfData.signedUrls || data.product.pdfFiles;
         }
       } catch (error) {
         console.error('Error generating signed URLs:', error);
         // Use original URLs as fallback
-        signedImageUrls = data.product.imageUrls;
-        signedFileUrls = data.product.fileUrls;
+        signedImageUrls = data.product.images || [];
+        signedFileUrls = data.product.pdfFiles || [];
       }
 
       const productWithSignedUrls = {
@@ -100,9 +101,9 @@ export default function EditProductPage() {
       setProduct(productWithSignedUrls);
       setFormData({
         title: data.product.title,
-        description: data.product.description,
-        specs: data.product.specs || '',
-        tags: data.product.tags.join(', '),
+        description: data.product.fullDescription || data.product.shortDescription,
+        specs: data.product.specifications || '',
+        tags: data.product.tags?.join(', ') || '',
       });
     } catch (err: any) {
       setError(err.message);
@@ -217,10 +218,10 @@ export default function EditProductPage() {
     );
   }
 
-  const existingImages = product.imageUrls.filter(
+  const existingImages = (product.images || []).filter(
     (url) => !deletedImages.includes(url)
   );
-  const existingFiles = product.fileUrls.filter(
+  const existingFiles = (product.pdfFiles || []).filter(
     (url) => !deletedFiles.includes(url)
   );
 
@@ -312,12 +313,17 @@ export default function EditProductPage() {
                 Current Images
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {existingImages.map((url, index) => (
+                {existingImages.map((url, index) => {
+                  const displayUrl = product.signedImageUrls?.[index] || url;
+                  return (
                   <div key={index} className="relative group">
                     <img
-                      src={url}
+                      src={displayUrl}
                       alt={`Image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = url;
+                      }}
                     />
                     <button
                       type="button"
@@ -327,7 +333,8 @@ export default function EditProductPage() {
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
