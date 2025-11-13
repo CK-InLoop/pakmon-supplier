@@ -71,9 +71,29 @@ export async function uploadToR2(
 
 export async function deleteFromR2(key: string): Promise<void> {
   // Extract key from full URL if needed
-  const actualKey = key.includes(process.env.R2_PUBLIC_URL!)
-    ? key.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-    : key;
+  // Handles both custom domain and old R2 dev URLs
+  let actualKey = key;
+  
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    // It's a full URL, extract the path
+    try {
+      const url = new URL(key);
+      // Remove leading slash from pathname
+      actualKey = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+    } catch {
+      // If URL parsing fails, try simple string replacement
+      const publicUrl = process.env.R2_PUBLIC_URL;
+      if (publicUrl && key.includes(publicUrl)) {
+        actualKey = key.replace(`${publicUrl}/`, '');
+      } else if (key.includes('.r2.dev')) {
+        // Handle old R2 dev URLs
+        const match = key.match(/\.r2\.dev\/(.+)$/);
+        if (match) {
+          actualKey = match[1];
+        }
+      }
+    }
+  }
 
   await r2Client.send(
     new DeleteObjectCommand({
@@ -96,9 +116,23 @@ export async function getPresignedUrl(key: string, expiresIn: number = 3600): Pr
 export async function getImageUrl(imageUrl: string, expiresIn: number = 3600): Promise<string> {
   try {
     // Extract key from full URL if it's a full URL
-    const key = imageUrl.includes(process.env.R2_PUBLIC_URL!)
-      ? imageUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-      : imageUrl;
+    let key = imageUrl;
+    
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      try {
+        const url = new URL(imageUrl);
+        key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+      } catch {
+        // Fallback to simple replacement
+        const publicUrl = process.env.R2_PUBLIC_URL;
+        if (publicUrl && imageUrl.includes(publicUrl)) {
+          key = imageUrl.replace(`${publicUrl}/`, '');
+        } else if (imageUrl.includes('.r2.dev')) {
+          const match = imageUrl.match(/\.r2\.dev\/(.+)$/);
+          if (match) key = match[1];
+        }
+      }
+    }
 
     return await getPresignedUrl(key, expiresIn);
   } catch (error) {
@@ -111,9 +145,23 @@ export async function getImageUrl(imageUrl: string, expiresIn: number = 3600): P
 export async function getPdfUrl(pdfUrl: string, expiresIn: number = 3600): Promise<string> {
   try {
     // Extract key from full URL if it's a full URL
-    const key = pdfUrl.includes(process.env.R2_PUBLIC_URL!)
-      ? pdfUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-      : pdfUrl;
+    let key = pdfUrl;
+    
+    if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
+      try {
+        const url = new URL(pdfUrl);
+        key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+      } catch {
+        // Fallback to simple replacement
+        const publicUrl = process.env.R2_PUBLIC_URL;
+        if (publicUrl && pdfUrl.includes(publicUrl)) {
+          key = pdfUrl.replace(`${publicUrl}/`, '');
+        } else if (pdfUrl.includes('.r2.dev')) {
+          const match = pdfUrl.match(/\.r2\.dev\/(.+)$/);
+          if (match) key = match[1];
+        }
+      }
+    }
 
     return await getPresignedUrl(key, expiresIn);
   } catch (error) {

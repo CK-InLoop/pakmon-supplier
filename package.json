@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "migrate:r2-urls": "tsx scripts/migrate-r2-urls.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
@@ -39,6 +40,7 @@
     "@types/react-dom": "^19",
     "prisma": "^6.2.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
