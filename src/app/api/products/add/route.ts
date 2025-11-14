@@ -15,7 +15,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData();
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch (error) {
+      console.error('FormData parsing error:', error);
+      return NextResponse.json(
+        { error: 'Invalid form data' },
+        { status: 400 }
+      );
+    }
     
     const title = formData.get('title') as string;
     const shortDescription = formData.get('shortDescription') as string;

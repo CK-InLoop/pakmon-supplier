@@ -87,7 +87,22 @@ export default function AddProductPage() {
         body: formDataToSend,
       });
 
-      const data = await response.json();
+      // Safely parse JSON response
+      let data: any = {};
+      try {
+        const text = await response.text();
+        if (text) {
+          data = JSON.parse(text);
+        }
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        // If we can't parse JSON but response is not ok, show generic error
+        if (!response.ok) {
+          throw new Error(`Server error (${response.status}): ${response.statusText}`);
+        }
+        // If response is ok but can't parse, assume success
+        data = { message: 'Product created successfully' };
+      }
 
       if (!response.ok) {
         // Check if redirect is needed (e.g., onboarding not completed)
@@ -95,12 +110,12 @@ export default function AddProductPage() {
           router.push(data.redirect);
           return;
         }
-        throw new Error(data.error || 'Something went wrong');
+        throw new Error(data.error || `Server error (${response.status})`);
       }
 
       router.push('/dashboard/products');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'An error occurred while creating the product');
     } finally {
       setLoading(false);
     }
