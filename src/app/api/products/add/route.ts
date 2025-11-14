@@ -88,7 +88,10 @@ export async function POST(req: NextRequest) {
 
     if (!supplier) {
       return NextResponse.json(
-        { error: 'Supplier profile not found. Please complete onboarding first.' },
+        { 
+          error: 'Supplier profile not found. Please complete onboarding first.',
+          redirect: '/onboarding'
+        },
         { status: 404 }
       );
     }

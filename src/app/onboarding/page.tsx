@@ -52,6 +52,11 @@ export default function OnboardingPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if redirect is needed
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
         throw new Error(data.error || 'Something went wrong');
       }
 

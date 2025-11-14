@@ -38,6 +38,15 @@ export default function ProductsPage() {
       const response = await fetch('/api/products/list');
       const data = await response.json();
       
+      if (!response.ok) {
+        // Check if redirect is needed (e.g., onboarding not completed)
+        if (data.redirect) {
+          window.location.href = data.redirect;
+          return;
+        }
+        throw new Error(data.error || 'Failed to fetch products');
+      }
+      
       // Generate signed URLs for images and PDFs
       const productsWithSignedUrls = await Promise.all(
         data.products.map(async (product: Product) => {
