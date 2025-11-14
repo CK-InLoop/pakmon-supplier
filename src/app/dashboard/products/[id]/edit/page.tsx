@@ -48,7 +48,11 @@ export default function EditProductPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error);
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
+        throw new Error(data.error || 'Failed to load product');
       }
 
       // Generate signed URLs for existing images and PDFs

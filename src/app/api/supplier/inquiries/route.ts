@@ -97,11 +97,25 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Update inquiry status
-    const inquiry = await prisma.inquiry.update({
+    // Ensure the inquiry belongs to this supplier
+    const existingInquiry = await prisma.inquiry.findFirst({
       where: {
         id: inquiryId,
-        supplierId: supplier.id, // Ensure supplier can only update their own inquiries
+        supplierId: supplier.id,
+      },
+    });
+
+    if (!existingInquiry) {
+      return NextResponse.json(
+        { error: 'Inquiry not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update inquiry status using the primary key
+    const inquiry = await prisma.inquiry.update({
+      where: {
+        id: existingInquiry.id,
       },
       data: {
         status,

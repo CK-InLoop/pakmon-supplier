@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrendingUp, Eye, Package, CheckCircle } from 'lucide-react';
+import { TrendingUp, Eye, Package, CheckCircle, Clock } from 'lucide-react';
 
 interface Product {
   id: string;
   title: string;
   matchCount: number;
   viewCount: number;
-  isApproved: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
 }
 
@@ -17,6 +17,7 @@ interface Analytics {
     totalProducts: number;
     approvedProducts: number;
     pendingProducts: number;
+    rejectedProducts: number;
     totalMatches: number;
     totalViews: number;
   };
@@ -26,6 +27,7 @@ interface Analytics {
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchAnalytics();
@@ -35,9 +37,19 @@ export default function AnalyticsPage() {
     try {
       const response = await fetch('/api/analytics');
       const data = await response.json();
+
+      if (!response.ok) {
+        if (data.redirect) {
+          window.location.href = data.redirect;
+          return;
+        }
+        throw new Error(data.error || `Failed to fetch analytics (${response.status})`);
+      }
+
       setAnalytics(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load analytics');
     } finally {
       setLoading(false);
     }
@@ -47,6 +59,14 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">Loading analytics...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }
@@ -96,6 +116,20 @@ export default function AnalyticsPage() {
             </div>
             <div className="bg-green-100 rounded-full p-3">
               <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-3xl font-bold text-yellow-600 mt-2">
+                {analytics.summary.pendingProducts}
+              </p>
+            </div>
+            <div className="bg-yellow-100 rounded-full p-3">
+              <Clock className="w-6 h-6 text-yellow-600" />
             </div>
           </div>
         </div>
@@ -157,9 +191,6 @@ export default function AnalyticsPage() {
                     Product
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Matches
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -179,10 +210,15 @@ export default function AnalyticsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {product.isApproved ? (
+                      {product.status === 'APPROVED' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
                           <CheckCircle className="w-3 h-3" />
                           Approved
+                        </span>
+                      ) : product.status === 'REJECTED' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                          <Clock className="w-3 h-3" />
+                          Rejected
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">

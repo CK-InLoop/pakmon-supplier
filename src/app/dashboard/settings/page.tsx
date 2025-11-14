@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { User, Building2, Phone, MapPin } from 'lucide-react';
 
 interface Supplier {
@@ -16,6 +18,7 @@ interface Supplier {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [formData, setFormData] = useState({
     companyName: '',
@@ -38,7 +41,11 @@ export default function SettingsPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error);
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
+        throw new Error(data.error || 'Failed to load profile');
       }
 
       setSupplier(data.supplier);

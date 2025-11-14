@@ -27,7 +27,10 @@ export async function GET(
 
     if (!supplier) {
       return NextResponse.json(
-        { error: 'Supplier profile not found' },
+        { 
+          error: 'Supplier profile not found. Please complete onboarding first.',
+          redirect: '/onboarding'
+        },
         { status: 404 }
       );
     }

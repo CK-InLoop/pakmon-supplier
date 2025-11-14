@@ -82,18 +82,17 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Remove like
-    await prisma.liked.delete({
+    // Remove like (idempotent)
+    const result = await prisma.liked.deleteMany({
       where: {
-        userId_productId: {
-          userId: session.user.id,
-          productId,
-        },
+        userId: session.user.id,
+        productId,
       },
     });
 
     return NextResponse.json({
       message: 'Product unliked successfully',
+      deleted: result.count,
     });
   } catch (error) {
     console.error('Unlike error:', error);
