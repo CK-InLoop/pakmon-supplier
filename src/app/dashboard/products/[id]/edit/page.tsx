@@ -56,44 +56,59 @@ export default function EditProductPage() {
       }
 
       // Generate signed URLs for existing images and PDFs
+      // Only generate for non-empty arrays to avoid unnecessary requests
       let signedImageUrls: string[] = [];
       let signedFileUrls: string[] = [];
 
       try {
-        // Generate signed URLs for images
-        if (data.product.images && data.product.images.length > 0) {
+        // Generate signed URLs for images (only if there are images)
+        const validImages = (data.product.images || []).filter((url: string) => url && url.trim());
+        if (validImages.length > 0) {
           const imageResponse = await fetch('/api/files/signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'images',
-              urls: data.product.images,
+              urls: validImages,
               expiresIn: 3600
             })
           });
-          const imageData = await imageResponse.json();
-          signedImageUrls = imageData.signedUrls || data.product.images;
+          
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            signedImageUrls = imageData.signedUrls || validImages;
+          } else {
+            // If signed URL generation fails, use original URLs
+            signedImageUrls = validImages;
+          }
         }
 
-        // Generate signed URLs for PDFs
-        if (data.product.pdfFiles && data.product.pdfFiles.length > 0) {
+        // Generate signed URLs for PDFs (only if there are PDFs)
+        const validPdfs = (data.product.pdfFiles || []).filter((url: string) => url && url.trim());
+        if (validPdfs.length > 0) {
           const pdfResponse = await fetch('/api/files/signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'pdfs',
-              urls: data.product.pdfFiles,
+              urls: validPdfs,
               expiresIn: 3600
             })
           });
-          const pdfData = await pdfResponse.json();
-          signedFileUrls = pdfData.signedUrls || data.product.pdfFiles;
+          
+          if (pdfResponse.ok) {
+            const pdfData = await pdfResponse.json();
+            signedFileUrls = pdfData.signedUrls || validPdfs;
+          } else {
+            // If signed URL generation fails, use original URLs
+            signedFileUrls = validPdfs;
+          }
         }
       } catch (error) {
         console.error('Error generating signed URLs:', error);
         // Use original URLs as fallback
-        signedImageUrls = data.product.images || [];
-        signedFileUrls = data.product.pdfFiles || [];
+        signedImageUrls = (data.product.images || []).filter((url: string) => url && url.trim());
+        signedFileUrls = (data.product.pdfFiles || []).filter((url: string) => url && url.trim());
       }
 
       const productWithSignedUrls = {
@@ -222,12 +237,30 @@ export default function EditProductPage() {
     );
   }
 
-  const existingImages = (product.images || []).filter(
-    (url) => !deletedImages.includes(url)
-  );
-  const existingFiles = (product.pdfFiles || []).filter(
-    (url) => !deletedFiles.includes(url)
-  );
+  // Filter out deleted images/files and match with signed URLs
+  // Also filter out empty/null URLs to prevent unnecessary requests
+  const existingImages = (product.images || [])
+    .filter((url) => url && url.trim() && !deletedImages.includes(url));
+  const existingFiles = (product.pdfFiles || [])
+    .filter((url) => url && url.trim() && !deletedFiles.includes(url));
+
+  // Map existing images to their signed URLs (maintaining order)
+  const getSignedImageUrl = (originalUrl: string): string => {
+    const originalIndex = product.images?.indexOf(originalUrl) ?? -1;
+    if (originalIndex >= 0 && product.signedImageUrls && product.signedImageUrls[originalIndex]) {
+      return product.signedImageUrls[originalIndex];
+    }
+    return originalUrl; // Fallback to original URL
+  };
+
+  // Map existing files to their signed URLs (maintaining order)
+  const getSignedFileUrl = (originalUrl: string): string => {
+    const originalIndex = product.pdfFiles?.indexOf(originalUrl) ?? -1;
+    if (originalIndex >= 0 && product.signedFileUrls && product.signedFileUrls[originalIndex]) {
+      return product.signedFileUrls[originalIndex];
+    }
+    return originalUrl; // Fallback to original URL
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -318,15 +351,21 @@ export default function EditProductPage() {
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {existingImages.map((url, index) => {
-                  const displayUrl = product.signedImageUrls?.[index] || url;
+                  const displayUrl = getSignedImageUrl(url);
                   return (
-                  <div key={index} className="relative group">
+                  <div key={url} className="relative group">
                     <img
                       src={displayUrl}
                       alt={`Image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = url;
+                        // If signed URL fails, try original URL
+                        if ((e.target as HTMLImageElement).src !== url) {
+                          (e.target as HTMLImageElement).src = url;
+                        } else {
+                          // If both fail, hide the image
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }
                       }}
                     />
                     <button

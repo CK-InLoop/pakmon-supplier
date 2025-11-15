@@ -110,12 +110,22 @@ export default function ProductsPage() {
         method: 'DELETE',
       });
 
-      if (response.ok) {
-        setProducts(products.filter((p) => p.id !== id));
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Check if redirect is needed (e.g., onboarding not completed)
+        if (data.redirect) {
+          window.location.href = data.redirect;
+          return;
+        }
+        throw new Error(data.error || 'Failed to delete product');
       }
-    } catch (error) {
+
+      // Successfully deleted - remove from list
+      setProducts(products.filter((p) => p.id !== id));
+    } catch (error: any) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      alert(error.message || 'Failed to delete product. Please try again.');
     } finally {
       setDeleteLoading(null);
     }
