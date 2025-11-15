@@ -225,6 +225,7 @@ export async function DELETE(
       );
     }
 
+    // Find product and verify ownership
     const product = await prisma.product.findFirst({
       where: {
         id,
@@ -238,6 +239,12 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    console.log('Deleting product:', {
+      productId: id,
+      supplierId: supplier.id,
+      title: product.title,
+    });
 
     // Delete files from R2 (continue even if some fail)
     const deleteErrors: string[] = [];
@@ -268,11 +275,46 @@ export async function DELETE(
       }
     }
 
+    // Delete related records first (MongoDB doesn't enforce cascade deletes)
+    // Delete likes for this product
+    try {
+      await prisma.liked.deleteMany({
+        where: { productId: id },
+      });
+      console.log('Deleted likes for product:', id);
+    } catch (error) {
+      console.error('Error deleting likes:', error);
+      // Continue even if this fails
+    }
+
+    // Delete chat product references
+    try {
+      await prisma.chatProductReference.deleteMany({
+        where: { productId: id },
+      });
+      console.log('Deleted chat references for product:', id);
+    } catch (error) {
+      console.error('Error deleting chat references:', error);
+      // Continue even if this fails
+    }
+
+    // Delete inquiries for this product
+    try {
+      await prisma.inquiry.deleteMany({
+        where: { productId: id },
+      });
+      console.log('Deleted inquiries for product:', id);
+    } catch (error) {
+      console.error('Error deleting inquiries:', error);
+      // Continue even if this fails
+    }
+
     // Delete from AutoRAG (continue even if it fails)
     try {
       const chunks = await createProductChunks(product);
       if (chunks.length > 0) {
         await deleteFromAutoRAG(chunks.map(c => c.id));
+        console.log('Deleted AutoRAG chunks for product:', id);
       }
     } catch (error) {
       console.error('AutoRAG deletion error:', error);
@@ -280,17 +322,37 @@ export async function DELETE(
     }
 
     // Delete product from database
+    let deleteResult;
     try {
-      await prisma.product.delete({
+      deleteResult = await prisma.product.delete({
         where: { id },
       });
+      console.log('Successfully deleted product from database:', id);
     } catch (error: any) {
+      console.error('Error deleting product from database:', error);
       // If product was already deleted or doesn't exist, that's okay
       if (error.code === 'P2025') {
         console.warn('Product already deleted:', id);
+        // Verify it's actually gone
+        const verifyProduct = await prisma.product.findUnique({
+          where: { id },
+        });
+        if (verifyProduct) {
+          throw new Error('Product still exists after delete operation');
+        }
       } else {
         throw error;
       }
+    }
+
+    // Verify deletion was successful
+    const verifyProduct = await prisma.product.findUnique({
+      where: { id },
+    });
+    
+    if (verifyProduct) {
+      console.error('Product still exists after delete operation:', id);
+      throw new Error('Failed to delete product from database');
     }
 
     // Return success even if some file deletions failed (product is deleted from DB)
