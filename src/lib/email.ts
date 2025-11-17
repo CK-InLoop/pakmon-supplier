@@ -33,7 +33,7 @@ export async function sendVerificationEmail(email: string, token: string, name: 
                 <p>Thank you for registering as a supplier with Flavi Dairy Solutions!</p>
                 <p>Please click the button below to verify your email address and activate your account:</p>
                 <div style="text-align: center;">
-                  <a href="${verificationUrl}" class="button">Verify Email Address</a>
+                  <a href="${verificationUrl}" class="button" target="_blank" style="color: #ffffff !important;">Verify Email Address</a>
                 </div>
                 <p>Or copy and paste this link in your browser:</p>
                 <p style="word-break: break-all; color: #667eea;">${verificationUrl}</p>
