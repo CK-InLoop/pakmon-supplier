@@ -37,6 +37,10 @@ export default function EditProductPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     fetchProduct();
@@ -218,6 +222,39 @@ export default function EditProductPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!product) return;
+
+    if (deleteInput.trim() !== product.title.trim()) {
+      setDeleteError('Please type the exact product title to confirm deletion.');
+      return;
+    }
+
+    setDeleteError('');
+    setDeleteLoading(true);
+
+    try {
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
+        throw new Error(data.error || 'Failed to delete product');
+      }
+
+      router.push('/dashboard/products');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Something went wrong while deleting.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -508,22 +545,84 @@ export default function EditProductPage() {
           )}
         </div>
 
-        {/* Submit Button */}
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Updating Product...' : 'Update Product'}
-          </button>
+        {/* Submit + Delete Actions */}
+        <div className="space-y-4">
+          <div className="flex gap-4 flex-wrap">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 min-w-[200px] bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Updating Product...' : 'Update Product'}
+            </button>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+            <div>
+              <h3 className="text-lg font-semibold text-red-800">Danger Zone</h3>
+              <p className="text-sm text-red-700">
+                Deleting a product is permanent. Please re-verify before continuing.
+              </p>
+            </div>
+
+            {!deleteConfirmOpen ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteConfirmOpen(true);
+                  setDeleteInput('');
+                  setDeleteError('');
+                }}
+                className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:opacity-50"
+              >
+                Delete Product
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-red-800">
+                  Type <span className="font-semibold">"{product.title}"</span> to confirm deletion.
+                </label>
+                <input
+                  type="text"
+                  value={deleteInput}
+                  onChange={(e) => setDeleteInput(e.target.value)}
+                  className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent text-gray-900"
+                  placeholder="Re-type product title"
+                />
+                {deleteError && (
+                  <p className="text-sm text-red-600">{deleteError}</p>
+                )}
+                <div className="flex gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    className="flex-1 min-w-[160px] bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deleteLoading ? 'Deleting...' : 'Confirm Delete'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirmOpen(false);
+                      setDeleteInput('');
+                      setDeleteError('');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </form>
     </div>

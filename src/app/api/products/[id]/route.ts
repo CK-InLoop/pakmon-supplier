@@ -246,34 +246,8 @@ export async function DELETE(
       title: product.title,
     });
 
-    // Delete files from R2 (continue even if some fail)
-    const deleteErrors: string[] = [];
-    
-    if (product.images && Array.isArray(product.images)) {
-      for (const imageUrl of product.images) {
-        if (imageUrl) {
-          try {
-            await deleteFromR2(imageUrl);
-          } catch (error) {
-            console.error('Error deleting image from R2:', imageUrl, error);
-            deleteErrors.push(`Failed to delete image: ${imageUrl}`);
-          }
-        }
-      }
-    }
-
-    if (product.pdfFiles && Array.isArray(product.pdfFiles)) {
-      for (const fileUrl of product.pdfFiles) {
-        if (fileUrl) {
-          try {
-            await deleteFromR2(fileUrl);
-          } catch (error) {
-            console.error('Error deleting PDF from R2:', fileUrl, error);
-            deleteErrors.push(`Failed to delete PDF: ${fileUrl}`);
-          }
-        }
-      }
-    }
+    const productImages = Array.isArray(product.images) ? [...product.images] : [];
+    const productFiles = Array.isArray(product.pdfFiles) ? [...product.pdfFiles] : [];
 
     // Delete related records first (MongoDB doesn't enforce cascade deletes)
     // Delete likes for this product
@@ -309,40 +283,21 @@ export async function DELETE(
       // Continue even if this fails
     }
 
-    // Delete from AutoRAG (continue even if it fails)
+    // Delete product from database before performing long-running cleanup tasks
     try {
-      const chunks = await createProductChunks(product);
-      if (chunks.length > 0) {
-        await deleteFromAutoRAG(chunks.map(c => c.id));
-        console.log('Deleted AutoRAG chunks for product:', id);
-      }
-    } catch (error) {
-      console.error('AutoRAG deletion error:', error);
-      // Don't fail the entire operation if AutoRAG deletion fails
-    }
-
-    // Delete product from database
-    let deleteResult;
-    try {
-      deleteResult = await prisma.product.delete({
+      await prisma.product.delete({
         where: { id },
       });
       console.log('Successfully deleted product from database:', id);
     } catch (error: any) {
       console.error('Error deleting product from database:', error);
-      // If product was already deleted or doesn't exist, that's okay
       if (error.code === 'P2025') {
-        console.warn('Product already deleted:', id);
-        // Verify it's actually gone
-        const verifyProduct = await prisma.product.findUnique({
-          where: { id },
-        });
-        if (verifyProduct) {
-          throw new Error('Product still exists after delete operation');
-        }
-      } else {
-        throw error;
+        return NextResponse.json(
+          { error: 'Product not found' },
+          { status: 404 }
+        );
       }
+      throw error;
     }
 
     // Verify deletion was successful
@@ -353,6 +308,61 @@ export async function DELETE(
     if (verifyProduct) {
       console.error('Product still exists after delete operation:', id);
       throw new Error('Failed to delete product from database');
+    }
+
+    // Delete files from R2 (continue even if some fail)
+    const deleteErrors: string[] = [];
+
+    const deleteImageResults = await Promise.allSettled(
+      productImages
+        .filter((url): url is string => Boolean(url))
+        .map(async (imageUrl) => {
+          try {
+            await deleteFromR2(imageUrl);
+          } catch (error) {
+            console.error('Error deleting image from R2:', imageUrl, error);
+            throw new Error(`Failed to delete image: ${imageUrl}`);
+          }
+        })
+    );
+
+    deleteImageResults.forEach((result) => {
+      if (result.status === 'rejected') {
+        const reason = result.reason as { message?: string };
+        deleteErrors.push(reason?.message || 'Failed to delete an image from R2');
+      }
+    });
+
+    const deleteFileResults = await Promise.allSettled(
+      productFiles
+        .filter((url): url is string => Boolean(url))
+        .map(async (fileUrl) => {
+          try {
+            await deleteFromR2(fileUrl);
+          } catch (error) {
+            console.error('Error deleting PDF from R2:', fileUrl, error);
+            throw new Error(`Failed to delete PDF: ${fileUrl}`);
+          }
+        })
+    );
+
+    deleteFileResults.forEach((result) => {
+      if (result.status === 'rejected') {
+        const reason = result.reason as { message?: string };
+        deleteErrors.push(reason?.message || 'Failed to delete a PDF from R2');
+      }
+    });
+
+    // Delete from AutoRAG (continue even if it fails)
+    try {
+      const chunks = await createProductChunks(product);
+      if (chunks.length > 0) {
+        await deleteFromAutoRAG(chunks.map(c => c.id));
+        console.log('Deleted AutoRAG chunks for product:', id);
+      }
+    } catch (error) {
+      console.error('AutoRAG deletion error:', error);
+      // Don't fail the entire operation if AutoRAG deletion fails
     }
 
     // Return success even if some file deletions failed (product is deleted from DB)
