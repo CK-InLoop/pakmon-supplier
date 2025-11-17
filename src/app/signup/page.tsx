@@ -43,6 +43,7 @@ export default function SignupPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          role: 'SUPPLIER', // All signups from this page are suppliers
         }),
       });
 

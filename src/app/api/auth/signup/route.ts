@@ -7,7 +7,7 @@ import { randomBytes } from 'crypto';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, role } = body;
 
     // Validation
     if (!name || !email || !password) {
@@ -39,14 +39,14 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create user
+    // Create user with supplier role (default for signups from /signup page)
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         emailVerified: false,
-        role: 'SUPPLIER', // Default to supplier role for now
+        role: role || 'SUPPLIER', // Default to SUPPLIER if not specified
       },
     });
 
