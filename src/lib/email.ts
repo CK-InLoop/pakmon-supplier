@@ -67,7 +67,7 @@ export async function sendPasswordResetEmail(email: string, token: string, name:
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'info@flavidairysolution.com',
       to: [email],
       subject: 'Reset Your Password - Flavi Dairy Solutions',
       html: `

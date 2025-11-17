@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPage =
     request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname.startsWith('/auth/verify') ||
+    request.nextUrl.pathname.startsWith('/auth/reset-password') ||
     request.nextUrl.pathname.startsWith('/auth/error') ||
     request.nextUrl.pathname.startsWith('/onboarding');
 

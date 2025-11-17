@@ -21,6 +21,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (!session?.user?.email) {
       const verifiedUser = localStorage.getItem('verifiedUser');
+      console.log(verifiedUser);
       if (verifiedUser) {
         const user = JSON.parse(verifiedUser);
         setUserEmail(user.email);
