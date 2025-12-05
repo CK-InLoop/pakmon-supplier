@@ -1,9 +1,8 @@
-// Prisma schema for Flavi Dairy Solutions
-// Provider: MongoDB
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native"]
 }
 
 datasource db {
@@ -11,112 +10,207 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  CUSTOMER
-  SUPPLIER
-  ADMIN
-  SUPER_ADMIN
+// ============================================
+// Admin Panel Models
+// ============================================
+
+// Admin model for admin panel authentication
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
 }
 
-enum ProductStatus {
-  PENDING
-  APPROVED
-  REJECTED
+// ============================================
+// Supplier Portal Models (Existing + Enhanced)
+// ============================================
+
+// Supplier model - enhanced with admin panel fields
+model suppliers {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String?
+  email        String? @unique
+  password     String
+  companyName  String?
+  phone        String?
+  address      String?
+  city         String?
+  state        String?
+  pincode      String?
+  gstNumber    String?
+  description  String?
+  profileImage String?
+
+  // Admin panel fields
+  verified Boolean @default(false)
+  status   String  @default("pending") // pending, approved, rejected
+
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
+
+  // Relations
+  products  products[]
+  inquiries inquiries[]
+  liked     liked[]
 }
 
-model User {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  email             String   @unique
-  name              String?
-  password          String?  // hashed
-  role              UserRole @default(CUSTOMER)
-  emailVerified     Boolean  @default(false)
-  verificationToken String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+// Product model - enhanced with all necessary fields
+model products {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String    @db.ObjectId
+  supplier   suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
-  // Customer relations
-  chats             Chat[]
-  liked             Liked[]
-  inquiries         Inquiry[]
-  sessions          Session[]
+  name         String?
+  category     String
+  description  String
+  price        Float?
+  unit         String?
+  minOrderQty  Float?
+  availability String  @default("available") // available, out_of_stock
 
-  // Supplier relations (if role is SUPPLIER)
-  supplier          Supplier?
-  
-  @@map("users")
+  // Additional product details
+  tags      String[]
+  images    String[]
+  documents String[]
+
+  // Status tracking
+  status          String  @default("pending") // pending, approved, rejected
+  rejectionReason String?
+
+  // Metadata
+  views           Int @default(0)
+  recommendations Int @default(0) // how many times recommended by chatbot
+
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
+
+  // Relations
+  chatReferences chat_product_references[]
 }
 
-model Supplier {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @unique @db.ObjectId
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyName     String
-  description     String?
-  contactEmail    String
-  contactPhone    String?
-  website         String?
-  address         String?
-  logo            String?
-  status          ProductStatus @default(PENDING)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+// Inquiry model - customer inquiries to suppliers
+model inquiries {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String    @db.ObjectId
+  supplier   suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
-  products        Product[]
-  inquiries       Inquiry[]
-  
-  @@map("suppliers")
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  message       String
+  productName   String?
+  productId     String? @db.ObjectId
+
+  status String @default("new") // new, contacted, converted, closed
+
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
 }
 
-model Product {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  supplierId      String   @db.ObjectId
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  
-  title           String
-  shortDescription String
-  fullDescription String
-  specifications  String?  // JSON string
-  
-  images          String[] // Array of image URLs
-  videoUrl        String?  // YouTube embed URL
-  pdfFiles        String[] // Array of PDF file URLs
-  
-  category        String
-  tags            String[] // e.g., ["pasteurizer", "dairy", "2000L"]
-  
-  priceRange      String?  // e.g., "₹50,000 - ₹1,00,000"
-  capacity        String?  // e.g., "2000 L/day"
-  
-  status          ProductStatus @default(PENDING)
-  
-  // Analytics fields
-  viewCount       Int      @default(0)
-  matchCount      Int      @default(0)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+// ============================================
+// Chat/Customer Query Models
+// ============================================
 
-  liked           Liked[]
-  chatReferences  ChatProductReference[]
-  inquiries       Inquiry[]
-  
-  @@map("products")
+// Customer Query model - logs from chatbot interactions
+model CustomerQuery {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  query     String
+  response  String
+  products  String[] // productIds recommended
+  metadata  Json? // additional metadata like user location, context, etc.
+  createdAt DateTime @default(now()) @db.Date
+
+  @@map("customer_queries")
 }
 
-model VerificationToken {
+// Chat sessions
+model chats {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String?
+  userId    String?  @db.ObjectId
+  messages  Json[]
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
+
+  @@index([sessionId])
+}
+
+// Chat product references - products mentioned in chats
+model chat_product_references {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId      String?  @db.ObjectId
+  productId   String   @db.ObjectId
+  product     products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mentioned   Boolean  @default(false)
+  recommended Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Date
+}
+
+// Liked products (by customers or users)
+model liked {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?    @db.ObjectId
+  supplierId String?    @db.ObjectId
+  supplier   suppliers? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  productId  String?    @db.ObjectId
+  likedAt    DateTime   @default(now()) @db.Date
+}
+
+// ============================================
+// Admin Panel Specific Models
+// ============================================
+
+// Audit Log model - track admin actions
+model AuditLog {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  identifier String
-  token      String   @unique
-  expires    DateTime
+  adminId    String   @db.ObjectId
+  adminEmail String
+  action     String // e.g. "approveSupplier", "deleteProduct", "rejectProduct"
+  targetType String // "supplier", "product", "system"
+  targetId   String?  @db.ObjectId
+  details    Json? // additional details about the action
+  timestamp  DateTime @default(now()) @db.Date
 
-  @@unique([identifier, token])
-  @@map("verification_tokens")
+  @@map("audit_logs")
 }
 
-model Account {
+// System Settings model (optional - for global configurations)
+model SystemSetting {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @db.Date
+
+  @@map("system_settings")
+}
+
+// ============================================
+// Authentication Models (NextAuth / Custom Auth)
+// ============================================
+
+// User accounts (for NextAuth or custom auth)
+model users {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @db.Date
+  image         String?
+  createdAt     DateTime  @default(now()) @db.Date
+  updatedAt     DateTime  @updatedAt @db.Date
+
+  accounts accounts[]
+  sessions sessions[]
+}
+
+// OAuth accounts
+model accounts {
   id                String  @id @default(auto()) @map("_id") @db.ObjectId
   userId            String  @db.ObjectId
+  user              users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   type              String
   provider          String
   providerAccountId String
@@ -129,91 +223,23 @@ model Account {
   session_state     String?
 
   @@unique([provider, providerAccountId])
-  @@map("accounts")
 }
 
-model Session {
+// User sessions
+model sessions {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
   userId       String   @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expires      DateTime
-
-  @@map("sessions")
+  user         users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime @db.Date
 }
 
-model PasswordResetToken {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String
-  token     String   @unique
-  expires   DateTime
-  createdAt DateTime @default(now())
+// Verification tokens
+model verification_tokens {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime @db.Date
 
-  @@map("password_reset_tokens")
-}
-
-model Chat {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @db.ObjectId
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  query           String   // User's question/requirement
-  response        String   // Bot's response message
-  
-  createdAt       DateTime @default(now())
-  
-  products        ChatProductReference[]
-  
-  @@map("chats")
-}
-
-model ChatProductReference {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  chatId          String   @db.ObjectId
-  chat            Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  
-  productId       String   @db.ObjectId
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  relevanceScore  Float?   // Score from AI
-  
-  @@map("chat_product_references")
-}
-
-model Liked {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @db.ObjectId
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  productId       String   @db.ObjectId
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  createdAt       DateTime @default(now())
-  
-  @@unique([userId, productId])
-  @@map("liked")
-}
-
-model Inquiry {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @db.ObjectId
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  productId       String   @db.ObjectId
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  supplierId      String   @db.ObjectId
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  
-  message         String
-  contactName     String
-  contactEmail    String
-  contactPhone    String?
-  
-  status          String   @default("pending") // pending, responded, closed
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@map("inquiries")
+  @@unique([identifier, token])
 }
