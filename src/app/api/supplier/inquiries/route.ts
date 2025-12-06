@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get supplier profile
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const inquiries = await prisma.inquiry.findMany({
+    const inquiries = await prisma.inquiries.findMany({
       where: {
         supplierId: supplier.id,
       },
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -86,7 +86,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Get supplier profile
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
@@ -98,7 +98,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Ensure the inquiry belongs to this supplier
-    const existingInquiry = await prisma.inquiry.findFirst({
+    const existingInquiry = await prisma.inquiries.findFirst({
       where: {
         id: inquiryId,
         supplierId: supplier.id,
@@ -113,7 +113,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update inquiry status using the primary key
-    const inquiry = await prisma.inquiry.update({
+    const inquiry = await prisma.inquiries.update({
       where: {
         id: existingInquiry.id,
       },

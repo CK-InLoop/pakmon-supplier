@@ -7,7 +7,7 @@ import { createProductChunks, ingestToAutoRAG } from '@/lib/autorag';
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const title = formData.get('title') as string;
     const shortDescription = formData.get('shortDescription') as string;
     const fullDescription = formData.get('fullDescription') as string;
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Upload images
     const imageUrls: string[] = [];
     const images = formData.getAll('images') as File[];
-    
+
     for (const image of images) {
       if (image.size > 0) {
         try {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         } catch (error: any) {
           console.error('Image upload error:', error);
           return NextResponse.json(
-            { 
+            {
               error: 'Failed to upload image. ' + error.message,
               details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
             },
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     // Upload PDF files
     const fileUrls: string[] = [];
     const files = formData.getAll('files') as File[];
-    
+
     for (const file of files) {
       if (file.size > 0) {
         try {
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         } catch (error: any) {
           console.error('File upload error:', error);
           return NextResponse.json(
-            { 
+            {
               error: 'Failed to upload file. ' + error.message,
               details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
             },
@@ -91,13 +91,13 @@ export async function POST(req: NextRequest) {
     }
 
     // First, get the supplier profile for this user
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!supplier) {
       return NextResponse.json(
-        { 
+        {
           error: 'Supplier profile not found. Please complete onboarding first.',
           redirect: '/onboarding'
         },
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create product in database
-    const product = await prisma.product.create({
+    const product = await prisma.products.create({
       data: {
         supplierId: supplier.id,
         title,

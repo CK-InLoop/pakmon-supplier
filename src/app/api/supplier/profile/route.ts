@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find user with supplier profile
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: {
         supplier: true,
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     if (!user || !user.supplier) {
       return NextResponse.json(
-        { 
+        {
           error: 'Supplier profile not found. Please complete onboarding first.',
           redirect: '/onboarding'
         },
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest) {
     const { companyName, phone, address, description } = body;
 
     // Update supplier profile
-    const updatedSupplier = await prisma.supplier.update({
+    const updatedSupplier = await prisma.suppliers.update({
       where: { userId: session.user.id },
       data: {
         companyName,

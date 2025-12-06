@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get product with supplier info
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
       include: {
         supplier: true,
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create inquiry
-    const inquiry = await prisma.inquiry.create({
+    const inquiry = await prisma.inquiries.create({
       data: {
         userId: session.user.id,
         productId,
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const inquiries = await prisma.inquiry.findMany({
+    const inquiries = await prisma.inquiries.findMany({
       where: {
         userId: session.user.id,
       },

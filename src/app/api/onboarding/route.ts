@@ -14,13 +14,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the verified user by email
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email },
     });
 
     if (!user) {
       return NextResponse.json(
-        { 
+        {
           error: 'User not found. Please sign up first.',
           redirect: '/signup'
         },
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     if (!user.emailVerified) {
       return NextResponse.json(
-        { 
+        {
           error: 'Email not verified. Please verify your email first.',
           redirect: '/auth/verify'
         },
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     if (user.role !== 'SUPPLIER') {
       return NextResponse.json(
-        { 
+        {
           error: 'Only suppliers can complete onboarding',
           redirect: '/login'
         },
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create or update the supplier profile
-    const supplier = await prisma.supplier.upsert({
+    const supplier = await prisma.suppliers.upsert({
       where: { userId: user.id },
       update: {
         companyName,

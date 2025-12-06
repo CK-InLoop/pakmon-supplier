@@ -25,7 +25,7 @@ async function migrateR2Urls() {
 
   try {
     // Get all products
-    const products = await prisma.product.findMany({
+    const products = await prisma.products.findMany({
       select: {
         id: true,
         title: true,
@@ -69,7 +69,7 @@ async function migrateR2Urls() {
 
       // Update product if URLs changed
       if (needsUpdate) {
-        await prisma.product.update({
+        await prisma.products.update({
           where: { id: product.id },
           data: {
             images: updatedImages,

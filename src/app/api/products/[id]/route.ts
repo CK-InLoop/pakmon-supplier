@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -21,13 +21,13 @@ export async function GET(
     const { id } = await params;
 
     // First, get the supplier profile for this user
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!supplier) {
       return NextResponse.json(
-        { 
+        {
           error: 'Supplier profile not found. Please complete onboarding first.',
           redirect: '/onboarding'
         },
@@ -35,7 +35,7 @@ export async function GET(
       );
     }
 
-    const product = await prisma.product.findFirst({
+    const product = await prisma.products.findFirst({
       where: {
         id,
         supplierId: supplier.id,
@@ -65,7 +65,7 @@ export async function PATCH(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -76,7 +76,7 @@ export async function PATCH(
     const { id } = await params;
 
     // First, get the supplier profile for this user
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
@@ -88,7 +88,7 @@ export async function PATCH(
     }
 
     // Check if product exists and belongs to the supplier
-    const existingProduct = await prisma.product.findFirst({
+    const existingProduct = await prisma.products.findFirst({
       where: {
         id,
         supplierId: supplier.id,
@@ -103,7 +103,7 @@ export async function PATCH(
     }
 
     const formData = await req.formData();
-    
+
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const specs = formData.get('specs') as string | null;
@@ -113,7 +113,7 @@ export async function PATCH(
     // Handle new image uploads
     let images = [...existingProduct.images];
     const newImages = formData.getAll('newImages') as File[];
-    
+
     for (const image of newImages) {
       if (image.size > 0) {
         const buffer = Buffer.from(await image.arrayBuffer());
@@ -135,7 +135,7 @@ export async function PATCH(
     // Handle new file uploads
     let pdfFiles = [...existingProduct.pdfFiles];
     const newFiles = formData.getAll('newFiles') as File[];
-    
+
     for (const file of newFiles) {
       if (file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -155,7 +155,7 @@ export async function PATCH(
     }
 
     // Update product
-    const updatedProduct = await prisma.product.update({
+    const updatedProduct = await prisma.products.update({
       where: { id },
       data: {
         title: title || existingProduct.title,
@@ -173,7 +173,7 @@ export async function PATCH(
       // Delete old chunks
       const oldChunks = await createProductChunks(existingProduct);
       await deleteFromAutoRAG(oldChunks.map(c => c.id));
-      
+
       // Create new chunks
       const newChunks = await createProductChunks(updatedProduct);
       await ingestToAutoRAG(newChunks);
@@ -200,7 +200,7 @@ export async function DELETE(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -211,13 +211,13 @@ export async function DELETE(
     const { id } = await params;
 
     // First, get the supplier profile for this user
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await prisma.suppliers.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!supplier) {
       return NextResponse.json(
-        { 
+        {
           error: 'Supplier profile not found. Please complete onboarding first.',
           redirect: '/onboarding'
         },
@@ -226,7 +226,7 @@ export async function DELETE(
     }
 
     // Find product and verify ownership
-    const product = await prisma.product.findFirst({
+    const product = await prisma.products.findFirst({
       where: {
         id,
         supplierId: supplier.id,
@@ -274,7 +274,7 @@ export async function DELETE(
 
     // Delete inquiries for this product
     try {
-      await prisma.inquiry.deleteMany({
+      await prisma.inquiries.deleteMany({
         where: { productId: id },
       });
       console.log('Deleted inquiries for product:', id);
@@ -285,7 +285,7 @@ export async function DELETE(
 
     // Delete product from database before performing long-running cleanup tasks
     try {
-      await prisma.product.delete({
+      await prisma.products.delete({
         where: { id },
       });
       console.log('Successfully deleted product from database:', id);
@@ -301,10 +301,10 @@ export async function DELETE(
     }
 
     // Verify deletion was successful
-    const verifyProduct = await prisma.product.findUnique({
+    const verifyProduct = await prisma.products.findUnique({
       where: { id },
     });
-    
+
     if (verifyProduct) {
       console.error('Product still exists after delete operation:', id);
       throw new Error('Failed to delete product from database');
@@ -372,7 +372,7 @@ export async function DELETE(
     });
   } catch (error: any) {
     console.error('Delete product error:', error);
-    
+
     // Provide more specific error messages
     if (error.code === 'P2025') {
       return NextResponse.json(
@@ -380,7 +380,7 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(
       { error: error.message || 'An error occurred while deleting the product' },
       { status: 500 }
