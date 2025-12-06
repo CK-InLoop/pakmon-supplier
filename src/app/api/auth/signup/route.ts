@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email },
     });
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hash(password, 12);
 
     // Create user with supplier role (default for signups from /signup page)
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         name,
         email,
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const expires = new Date();
     expires.setHours(expires.getHours() + 24); // 24 hours expiry
 
-    await prisma.verificationToken.create({
+    await prisma.verification_tokens.create({
       data: {
         identifier: email,
         token,

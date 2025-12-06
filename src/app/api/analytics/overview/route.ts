@@ -42,7 +42,7 @@ export async function GET() {
       prisma.inquiries.count(),
       prisma.inquiries.count({ where: { status: 'responded' } }),
       prisma.products.aggregate({
-        _sum: { matchCount: true, viewCount: true },
+        _sum: { recommendations: true, views: true },
       }),
       prisma.suppliers.findMany({
         take: 5,
@@ -54,8 +54,8 @@ export async function GET() {
           _count: { select: { products: true, inquiries: true } },
           products: {
             select: {
-              matchCount: true,
-              viewCount: true,
+              recommendations: true,
+              views: true,
               status: true,
             },
           },
@@ -85,19 +85,19 @@ export async function GET() {
       }),
     ]);
 
-    const totalMatches = productAggregate._sum.matchCount ?? 0;
-    const totalViews = productAggregate._sum.viewCount ?? 0;
+    const totalMatches = productAggregate._sum.recommendations ?? 0;
+    const totalViews = productAggregate._sum.views ?? 0;
 
     const topSuppliers = topSuppliersRaw.map((supplier) => {
       const approvedProductCount = supplier.products.filter(
         (p) => p.status === 'APPROVED'
       ).length;
       const supplierMatches = supplier.products.reduce(
-        (sum, p) => sum + p.matchCount,
+        (sum, p) => sum + p.recommendations,
         0
       );
       const supplierViews = supplier.products.reduce(
-        (sum, p) => sum + p.viewCount,
+        (sum, p) => sum + p.views,
         0
       );
 

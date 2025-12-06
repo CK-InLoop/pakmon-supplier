@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find verification token (used for password reset)
-    const verificationToken = await prisma.verificationToken.findUnique({
+    const verificationToken = await prisma.verification_tokens.findUnique({
       where: { token },
     });
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     // Check if token has expired
     if (verificationToken.expires < new Date()) {
       // Clean up expired token
-      await prisma.verificationToken.delete({
+      await prisma.verification_tokens.delete({
         where: { token },
       });
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify that the user exists
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: verificationToken.identifier },
     });
 
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { 
+      {
         valid: true,
         message: 'Token is valid',
         email: verificationToken.identifier,
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find verification token
-    const verificationToken = await prisma.verificationToken.findUnique({
+    const verificationToken = await prisma.verification_tokens.findUnique({
       where: { token },
     });
 
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     // Check if token has expired
     if (verificationToken.expires < new Date()) {
-      await prisma.verificationToken.delete({
+      await prisma.verification_tokens.delete({
         where: { token },
       });
       return NextResponse.json(
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: verificationToken.identifier },
     });
 
@@ -127,18 +127,18 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hash(password, 12);
 
     // Update user password
-    await prisma.user.update({
+    await prisma.users.update({
       where: { email: verificationToken.identifier },
       data: { password: hashedPassword },
     });
 
     // Delete the used token
-    await prisma.verificationToken.delete({
+    await prisma.verification_tokens.delete({
       where: { token },
     });
 
     return NextResponse.json(
-      { 
+      {
         success: true,
         message: 'Password reset successfully',
       },
