@@ -109,16 +109,16 @@ export async function POST(req: NextRequest) {
     const product = await prisma.products.create({
       data: {
         supplierId: supplier.id,
+        name: title,
         title,
         shortDescription,
         fullDescription,
+        description: shortDescription, // Use shortDescription as primary description
         specifications,
         images: imageUrls,
         pdfFiles: fileUrls,
         category,
         tags,
-        priceRange,
-        capacity,
         status: 'PENDING',
       },
     });

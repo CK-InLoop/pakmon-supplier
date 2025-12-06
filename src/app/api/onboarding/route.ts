@@ -53,26 +53,28 @@ export async function POST(req: NextRequest) {
       where: { userId: user.id },
       update: {
         companyName,
-        contactPhone: phone,
+        phone,
         address,
         description,
-        contactEmail: email,
+        email,
       },
       create: {
         userId: user.id,
+        password: user.password || '', // Use user's password
         companyName,
-        contactPhone: phone,
+        phone,
         address,
         description,
-        contactEmail: email,
+        email,
+        name: user.name,
       },
       select: {
         id: true,
         companyName: true,
-        contactPhone: true,
+        phone: true,
         address: true,
         description: true,
-        contactEmail: true,
+        email: true,
         status: true,
         createdAt: true,
       },
@@ -90,3 +92,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

@@ -28,7 +28,7 @@ async function getAdminOverview() {
     prisma.inquiries.count(),
     prisma.inquiries.count({ where: { status: 'responded' } }),
     prisma.products.aggregate({
-      _sum: { matchCount: true, viewCount: true },
+      _sum: { recommendations: true, views: true },
     }),
     prisma.suppliers.findMany({
       take: 5,
@@ -38,12 +38,11 @@ async function getAdminOverview() {
         },
       },
       include: {
-        user: { select: { name: true, email: true } },
         _count: {
           select: { products: true, inquiries: true },
         },
         products: {
-          select: { matchCount: true, viewCount: true, status: true },
+          select: { recommendations: true, views: true, status: true },
         },
       },
     }),
@@ -53,9 +52,10 @@ async function getAdminOverview() {
       select: {
         id: true,
         companyName: true,
+        name: true,
+        email: true,
         status: true,
         createdAt: true,
-        user: { select: { name: true, email: true } },
       },
     }),
     prisma.products.findMany({
@@ -63,7 +63,7 @@ async function getAdminOverview() {
       take: 5,
       select: {
         id: true,
-        title: true,
+        name: true,
         status: true,
         createdAt: true,
         supplier: {
@@ -73,19 +73,19 @@ async function getAdminOverview() {
     }),
   ]);
 
-  const totalMatches = productStats._sum.matchCount ?? 0;
-  const totalViews = productStats._sum.viewCount ?? 0;
+  const totalMatches = productStats._sum.recommendations ?? 0;
+  const totalViews = productStats._sum.views ?? 0;
 
   const topSuppliers = topSuppliersRaw.map((supplier) => {
     const approvedProductCount = supplier.products.filter(
       (p) => p.status === 'APPROVED'
     ).length;
     const totalSupplierMatches = supplier.products.reduce(
-      (sum, p) => sum + p.matchCount,
+      (sum, p) => sum + p.recommendations,
       0
     );
     const totalSupplierViews = supplier.products.reduce(
-      (sum, p) => sum + p.viewCount,
+      (sum, p) => sum + p.views,
       0
     );
 
@@ -93,8 +93,8 @@ async function getAdminOverview() {
       id: supplier.id,
       companyName: supplier.companyName,
       status: supplier.status,
-      contactName: supplier.user?.name,
-      contactEmail: supplier.user?.email,
+      contactName: supplier.name,
+      contactEmail: supplier.email,
       totalProducts: supplier._count.products,
       approvedProducts: approvedProductCount,
       totalMatches: totalSupplierMatches,
@@ -135,7 +135,7 @@ async function getAdminOverview() {
 }
 
 async function getSupplierAnalytics(userId: string) {
-  const supplier = await prisma.supplier.findUnique({
+  const supplier = await prisma.suppliers.findUnique({
     where: { userId },
   });
 
@@ -147,20 +147,20 @@ async function getSupplierAnalytics(userId: string) {
     };
   }
 
-  const products = await prisma.product.findMany({
+  const products = await prisma.products.findMany({
     where: {
       supplierId: supplier.id,
     },
     select: {
       id: true,
-      title: true,
-      matchCount: true,
-      viewCount: true,
+      name: true,
+      recommendations: true,
+      views: true,
       status: true,
       createdAt: true,
     },
     orderBy: {
-      matchCount: 'desc',
+      recommendations: 'desc',
     },
   });
 
@@ -174,8 +174,8 @@ async function getSupplierAnalytics(userId: string) {
   const rejectedProducts = products.filter(
     (p) => p.status === 'REJECTED'
   ).length;
-  const totalMatches = products.reduce((sum, p) => sum + p.matchCount, 0);
-  const totalViews = products.reduce((sum, p) => sum + p.viewCount, 0);
+  const totalMatches = products.reduce((sum, p) => sum + p.recommendations, 0);
+  const totalViews = products.reduce((sum, p) => sum + p.views, 0);
 
   return {
     scope: 'supplier',

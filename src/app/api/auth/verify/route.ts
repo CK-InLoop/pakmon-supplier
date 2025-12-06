@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     // Update user as verified
     const user = await prisma.users.update({
       where: { email: verificationToken.identifier },
-      data: { emailVerified: true },
+      data: { emailVerified: new Date() },
     });
 
     // Delete verification token

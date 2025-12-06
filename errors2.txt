@@ -1,0 +1,41 @@
+﻿src/app/api/auth/signup/route.ts(48,9): error TS2322: Type 'false' is not assignable to type 'string | Date | null | undefined'.
+src/app/api/auth/verify/route.ts(43,15): error TS2322: Type 'true' is not assignable to type 'string | Date | NullableDateTimeFieldUpdateOperationsInput | null | undefined'.
+src/app/api/chat/route.ts(27,31): error TS2551: Property 'chat' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'chats'?
+src/app/api/chat/route.ts(37,20): error TS2551: Property 'chatProductReference' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'chat_product_references'?
+src/app/api/chat/route.ts(70,32): error TS2551: Property 'chat' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'chats'?
+src/app/api/inquiries/route.ts(44,9): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'Without<inquiriesCreateInput, inquiriesUncheckedCreateInput> & inquiriesUncheckedCreateInput'.
+src/app/api/inquiries/route.ts(80,9): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'inquiriesWhereInput'.
+src/app/api/onboarding/route.ts(59,9): error TS2353: Object literal may only specify known properties, and 'contactEmail' does not exist in type '(Without<suppliersUpdateInput, suppliersUncheckedUpdateInput> & suppliersUncheckedUpdateInput) | (Without<...> & suppliersUpdateInput)'.
+src/app/api/onboarding/route.ts(67,9): error TS2353: Object literal may only specify known properties, and 'contactEmail' does not exist in type 'Without<suppliersCreateInput, suppliersUncheckedCreateInput> & suppliersUncheckedCreateInput'.
+src/app/api/onboarding/route.ts(75,9): error TS2353: Object literal may only specify known properties, and 'contactEmail' does not exist in type 'suppliersSelect<DefaultArgs>'.
+src/app/api/products/[id]/route.ts(174,51): error TS2345: Argument of type '{ name: string | null; id: string; createdAt: Date; updatedAt: Date; description: string; status: string; supplierId: string; title: string | null; category: string; shortDescription: string | null; ... 12 more ...; recommendations: number; }' is not assignable to parameter of type '{ id: string; supplierId: string; title: string; shortDescription: string; fullDescription: string; specifications?: string | null | undefined; tags: string[]; images: string[]; pdfFiles: string[]; }'.
+  Types of property 'title' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/products/[id]/route.ts(178,51): error TS2345: Argument of type '{ name: string | null; id: string; createdAt: Date; updatedAt: Date; description: string; status: string; supplierId: string; title: string | null; category: string; shortDescription: string | null; ... 12 more ...; recommendations: number; }' is not assignable to parameter of type '{ id: string; supplierId: string; title: string; shortDescription: string; fullDescription: string; specifications?: string | null | undefined; tags: string[]; images: string[]; pdfFiles: string[]; }'.
+  Types of property 'title' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/products/[id]/route.ts(266,20): error TS2551: Property 'chatProductReference' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'chat_product_references'?
+src/app/api/products/[id]/route.ts(358,48): error TS2345: Argument of type '{ name: string | null; id: string; createdAt: Date; updatedAt: Date; description: string; status: string; supplierId: string; title: string | null; category: string; shortDescription: string | null; ... 12 more ...; recommendations: number; }' is not assignable to parameter of type '{ id: string; supplierId: string; title: string; shortDescription: string; fullDescription: string; specifications?: string | null | undefined; tags: string[]; images: string[]; pdfFiles: string[]; }'.
+  Types of property 'title' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/products/add/route.ts(120,9): error TS2353: Object literal may only specify known properties, and 'priceRange' does not exist in type 'Without<productsCreateInput, productsUncheckedCreateInput> & productsUncheckedCreateInput'.
+src/app/api/products/add/route.ts(128,48): error TS2345: Argument of type '{ name: string | null; id: string; createdAt: Date; updatedAt: Date; description: string; status: string; supplierId: string; title: string | null; category: string; shortDescription: string | null; ... 12 more ...; recommendations: number; }' is not assignable to parameter of type '{ id: string; supplierId: string; title: string; shortDescription: string; fullDescription: string; specifications?: string | null | undefined; tags: string[]; images: string[]; pdfFiles: string[]; }'.
+  Types of property 'title' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/supplier/inquiries/route.ts(42,9): error TS2353: Object literal may only specify known properties, and 'user' does not exist in type 'inquiriesInclude<DefaultArgs>'.
+src/app/api/supplier/profile/route.ts(86,9): error TS2353: Object literal may only specify known properties, and 'contactEmail' does not exist in type 'suppliersSelect<DefaultArgs>'.
+src/lib/auth.ts(14,13): error TS2322: Type '(credentials: Partial<Record<"email" | "password", unknown>>) => Promise<{ id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }>' is not assignable to type '(credentials: Partial<Record<"email" | "password", unknown>>, request: Request) => Awaitable<User | null>'.
+  Type 'Promise<{ id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }>' is not assignable to type 'Awaitable<User | null>'.
+    Type 'Promise<{ id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }>' is not assignable to type 'PromiseLike<User | null>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }, TResult2 = never>(onfulfilled?: ((value: { id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }) => TResult1 | PromiseLike<...>) ...' is not assignable to type '<TResult1 = User | null, TResult2 = never>(onfulfilled?: ((value: User | null) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | null | undefined) => PromiseLike<...>'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ id: string; email: string | null; name: string; role: string; companyName: string | undefined; verified: Date; }' is not assignable to type 'User'.
+                Types of property 'email' are incompatible.
+                  Type 'string | null' is not assignable to type 'string'.
+                    Type 'null' is not assignable to type 'string'.

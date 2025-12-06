@@ -83,7 +83,7 @@ export async function PATCH(req: NextRequest) {
         contactPhone: true,
         address: true,
         description: true,
-        contactEmail: true,
+        email: true,
         status: true,
         createdAt: true,
       },

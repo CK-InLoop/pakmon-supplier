@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { query, response, productIds } = body;
+    const { query, response, productIds, sessionId } = body;
 
     if (!query || !response) {
       return NextResponse.json(
@@ -23,22 +23,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create chat record
-    const chat = await prisma.chat.create({
+    // Create chat record with messages array
+    const chat = await prisma.chats.create({
       data: {
         userId: session.user.id,
-        query,
-        response,
+        sessionId: sessionId || undefined,
+        messages: [
+          { role: 'user', content: query },
+          { role: 'assistant', content: response }
+        ],
       },
     });
 
     // Create product references if provided
     if (productIds && productIds.length > 0) {
-      await prisma.chatProductReference.createMany({
-        data: productIds.map((productId: string, index: number) => ({
+      await prisma.chat_product_references.createMany({
+        data: productIds.map((productId: string) => ({
           chatId: chat.id,
           productId,
-          relevanceScore: 1.0 - (index * 0.1), // Simple scoring based on order
+          recommended: true,
         })),
       });
     }
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -67,16 +70,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const chats = await prisma.chat.findMany({
+    const chats = await prisma.chats.findMany({
       where: {
         userId: session.user.id,
-      },
-      include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
       },
       orderBy: {
         createdAt: 'desc',

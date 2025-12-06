@@ -95,20 +95,26 @@ export function chunkText(text: string, maxTokens: number = 500, overlap: number
 export async function createProductChunks(product: {
   id: string;
   supplierId: string;
-  title: string;
-  shortDescription: string;
-  fullDescription: string;
+  title?: string | null;
+  name?: string | null;
+  shortDescription?: string | null;
+  fullDescription?: string | null;
+  description?: string;
   specifications?: string | null;
   tags: string[];
   images: string[];
   pdfFiles: string[];
 }): Promise<AutoRAGChunk[]> {
+  const productTitle = product.title || product.name || 'Untitled Product';
+  const shortDesc = product.shortDescription || product.description || '';
+  const fullDesc = product.fullDescription || product.description || '';
+
   const fullText = `
-Title: ${product.title}
+Title: ${productTitle}
 
-Short Description: ${product.shortDescription}
+Short Description: ${shortDesc}
 
-Full Description: ${product.fullDescription}
+Full Description: ${fullDesc}
 
 ${product.specifications ? `Specifications: ${product.specifications}` : ''}
 
@@ -120,19 +126,18 @@ Files: ${product.pdfFiles.join(', ')}
   `.trim();
 
   const textChunks = chunkText(fullText);
-  
+
   return textChunks.map((content, index) => ({
     id: `${product.id}-chunk-${index}`,
     content,
     metadata: {
       productId: product.id,
       supplierId: product.supplierId,
-      title: product.title,
+      title: productTitle,
       tags: product.tags,
       images: product.images,
       pdfFiles: product.pdfFiles,
-      context: `Product from Flavi Dairy Solutions supplier. Title: ${product.title}`,
+      context: `Product from Flavi Dairy Solutions supplier. Title: ${productTitle}`,
     },
   }));
 }
-

@@ -32,11 +32,15 @@ model Admin {
 // Supplier model - enhanced with admin panel fields
 model suppliers {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String  @unique @db.ObjectId // Link to users table
+  user         users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   name         String?
   email        String? @unique
   password     String
   companyName  String?
   phone        String?
+  contactPhone String? // Alternative contact phone
   address      String?
   city         String?
   state        String?
@@ -47,7 +51,7 @@ model suppliers {
 
   // Admin panel fields
   verified Boolean @default(false)
-  status   String  @default("pending") // pending, approved, rejected
+  status   String  @default("PENDING") // PENDING, APPROVED, REJECTED
 
   createdAt DateTime @default(now()) @db.Date
   updatedAt DateTime @updatedAt @db.Date
@@ -64,9 +68,16 @@ model products {
   supplierId String    @db.ObjectId
   supplier   suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
-  name         String?
-  category     String
-  description  String
+  // Basic info
+  name             String?
+  title            String?  // Display title
+  category         String
+  description      String
+  shortDescription String?  // Brief summary
+  fullDescription  String?  // Detailed description
+  specifications   String?  // Technical specifications
+  
+  // Pricing
   price        Float?
   unit         String?
   minOrderQty  Float?
@@ -76,9 +87,10 @@ model products {
   tags      String[]
   images    String[]
   documents String[]
+  pdfFiles  String[] // PDF documents/brochures
 
   // Status tracking
-  status          String  @default("pending") // pending, approved, rejected
+  status          String  @default("PENDING") // PENDING, APPROVED, REJECTED
   rejectionReason String?
 
   // Metadata
@@ -90,6 +102,8 @@ model products {
 
   // Relations
   chatReferences chat_product_references[]
+  liked          liked[]
+  inquiries      inquiries[]
 }
 
 // Inquiry model - customer inquiries to suppliers
@@ -97,13 +111,14 @@ model inquiries {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   supplierId String    @db.ObjectId
   supplier   suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  productId  String?   @db.ObjectId
+  product    products? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   customerName  String
   customerEmail String
   customerPhone String?
   message       String
   productName   String?
-  productId     String? @db.ObjectId
 
   status String @default("new") // new, contacted, converted, closed
 
@@ -157,7 +172,11 @@ model liked {
   supplierId String?    @db.ObjectId
   supplier   suppliers? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   productId  String?    @db.ObjectId
+  product    products?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now()) @db.Date
   likedAt    DateTime   @default(now()) @db.Date
+
+  @@unique([userId, productId])
 }
 
 // ============================================
@@ -197,6 +216,8 @@ model users {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?   @unique
+  password      String?   // For credentials-based auth
+  role          String    @default("SUPPLIER") // SUPPLIER, ADMIN, SUPER_ADMIN
   emailVerified DateTime? @db.Date
   image         String?
   createdAt     DateTime  @default(now()) @db.Date
@@ -204,6 +225,7 @@ model users {
 
   accounts accounts[]
   sessions sessions[]
+  supplier suppliers? // 1:1 relation to supplier profile
 }
 
 // OAuth accounts

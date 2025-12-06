@@ -39,7 +39,6 @@ export async function GET(req: NextRequest) {
       },
       include: {
         product: true,
-        user: true,
       },
       orderBy: {
         createdAt: 'desc',

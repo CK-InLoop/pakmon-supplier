@@ -263,7 +263,7 @@ export async function DELETE(
 
     // Delete chat product references
     try {
-      await prisma.chatProductReference.deleteMany({
+      await prisma.chat_product_references.deleteMany({
         where: { productId: id },
       });
       console.log('Deleted chat references for product:', id);

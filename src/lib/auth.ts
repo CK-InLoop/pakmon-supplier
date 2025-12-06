@@ -43,11 +43,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
         return {
           id: user.id,
-          email: user.email,
+          email: user.email || '',
           name: user.name || '',
           role: user.role,
           companyName: user.supplier?.companyName || undefined,
-          verified: user.emailVerified,
+          verified: !!user.emailVerified,
         };
       },
     }),

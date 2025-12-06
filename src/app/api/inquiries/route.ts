@@ -38,16 +38,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create inquiry
+    // Create inquiry (no userId on inquiries - uses customer contact info instead)
     const inquiry = await prisma.inquiries.create({
       data: {
-        userId: session.user.id,
         productId,
         supplierId: product.supplierId,
         message,
-        contactName,
-        contactEmail,
-        contactPhone,
+        customerName: contactName,
+        customerEmail: contactEmail,
+        customerPhone: contactPhone,
+        productName: product.name || product.title,
       },
     });
 
@@ -75,17 +75,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Get supplier for this user
+    const supplier = await prisma.suppliers.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get inquiries for this supplier
     const inquiries = await prisma.inquiries.findMany({
       where: {
-        userId: session.user.id,
+        supplierId: supplier.id,
       },
       include: {
         product: true,
-        supplier: {
-          include: {
-            user: true,
-          },
-        },
+        supplier: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -101,3 +110,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

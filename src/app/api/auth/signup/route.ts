@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        emailVerified: false,
+        emailVerified: null,
         role: role || 'SUPPLIER', // Default to SUPPLIER if not specified
       },
     });
