@@ -32,19 +32,19 @@ export async function GET() {
       recentSuppliers,
       recentProducts,
     ] = await Promise.all([
-      prisma.supplier.count(),
-      prisma.supplier.count({ where: { status: 'APPROVED' } }),
-      prisma.supplier.count({ where: { status: 'PENDING' } }),
-      prisma.product.count(),
-      prisma.product.count({ where: { status: 'APPROVED' } }),
-      prisma.product.count({ where: { status: 'PENDING' } }),
-      prisma.product.count({ where: { status: 'REJECTED' } }),
-      prisma.inquiry.count(),
-      prisma.inquiry.count({ where: { status: 'responded' } }),
-      prisma.product.aggregate({
+      prisma.suppliers.count(),
+      prisma.suppliers.count({ where: { status: 'APPROVED' } }),
+      prisma.suppliers.count({ where: { status: 'PENDING' } }),
+      prisma.products.count(),
+      prisma.products.count({ where: { status: 'APPROVED' } }),
+      prisma.products.count({ where: { status: 'PENDING' } }),
+      prisma.products.count({ where: { status: 'REJECTED' } }),
+      prisma.inquiries.count(),
+      prisma.inquiries.count({ where: { status: 'responded' } }),
+      prisma.products.aggregate({
         _sum: { matchCount: true, viewCount: true },
       }),
-      prisma.supplier.findMany({
+      prisma.suppliers.findMany({
         take: 5,
         orderBy: {
           products: { _count: 'desc' },
@@ -61,7 +61,7 @@ export async function GET() {
           },
         },
       }),
-      prisma.supplier.findMany({
+      prisma.suppliers.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
@@ -72,7 +72,7 @@ export async function GET() {
           user: { select: { name: true, email: true } },
         },
       }),
-      prisma.product.findMany({
+      prisma.products.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
