@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     companyName: '',
     phone: '',
@@ -16,22 +16,33 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Get user email from localStorage if not logged in
+  // Get user email from session or localStorage
   useEffect(() => {
-    if (!session?.user?.email) {
-      const verifiedUser = localStorage.getItem('verifiedUser');
-      console.log(verifiedUser);
-      if (verifiedUser) {
-        const user = JSON.parse(verifiedUser);
-        setUserEmail(user.email);
-      } else {
-        router.push('/login');
-      }
-    } else {
+    if (status === 'loading') return; // Wait for session to load
+
+    if (session?.user?.email) {
+      // User is logged in - use session email
       setUserEmail(session.user.email);
+      setIsLoggedIn(true);
+    } else {
+      // Not logged in - try localStorage (from email verification flow)
+      const verifiedUser = localStorage.getItem('verifiedUser');
+      if (verifiedUser) {
+        try {
+          const user = JSON.parse(verifiedUser);
+          setUserEmail(user.email);
+          setIsLoggedIn(false);
+        } catch (e) {
+          console.error('Error parsing verified user:', e);
+          router.push('/login?message=Please log in to complete your profile');
+        }
+      } else {
+        router.push('/login?message=Please log in to complete your profile');
+      }
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +74,14 @@ export default function OnboardingPage() {
 
       // Clear the verified user from localStorage
       localStorage.removeItem('verifiedUser');
-      router.push('/login?message=Profile completed successfully. Please log in.');
+
+      if (isLoggedIn) {
+        // Already logged in - go directly to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        // Not logged in - redirect to login
+        router.push('/login?message=Profile completed successfully. Please log in.');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
