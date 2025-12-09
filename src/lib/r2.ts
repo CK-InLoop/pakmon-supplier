@@ -16,9 +16,15 @@ const r2Client = new S3Client({
 export async function uploadToR2(
   file: Buffer,
   filename: string,
-  contentType: string
+  contentType: string,
+  userId?: string,
+  productId?: string
 ): Promise<string> {
-  const key = `suppliers/${Date.now()}-${filename}`;
+  // Build key with userId_productId_timestamp_filename format
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const userPart = userId || 'unknown';
+  const productPart = productId || 'new';
+  const key = `suppliers/${userPart}_${productPart}_${Date.now()}_${sanitizedFilename}`;
 
   try {
     await r2Client.send(
@@ -73,7 +79,7 @@ export async function deleteFromR2(key: string): Promise<void> {
   // Extract key from full URL if needed
   // Handles both custom domain and old R2 dev URLs
   let actualKey = key;
-  
+
   if (key.startsWith('http://') || key.startsWith('https://')) {
     // It's a full URL, extract the path
     try {
@@ -117,7 +123,7 @@ export async function getImageUrl(imageUrl: string, expiresIn: number = 3600): P
   try {
     // Extract key from full URL if it's a full URL
     let key = imageUrl;
-    
+
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       try {
         const url = new URL(imageUrl);
@@ -146,7 +152,7 @@ export async function getPdfUrl(pdfUrl: string, expiresIn: number = 3600): Promi
   try {
     // Extract key from full URL if it's a full URL
     let key = pdfUrl;
-    
+
     if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
       try {
         const url = new URL(pdfUrl);

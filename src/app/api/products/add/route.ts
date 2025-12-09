@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       if (image.size > 0) {
         try {
           const buffer = Buffer.from(await image.arrayBuffer());
-          const url = await uploadToR2(buffer, image.name, image.type);
+          const url = await uploadToR2(buffer, image.name, image.type, session.user.id, 'new');
           imageUrls.push(url);
         } catch (error: any) {
           console.error('Image upload error:', error);
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       if (file.size > 0) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
-          const url = await uploadToR2(buffer, file.name, file.type);
+          const url = await uploadToR2(buffer, file.name, file.type, session.user.id, 'new');
           fileUrls.push(url);
         } catch (error: any) {
           console.error('File upload error:', error);

@@ -131,7 +131,7 @@ export async function PATCH(
     for (const image of newImages) {
       if (image.size > 0) {
         const buffer = Buffer.from(await image.arrayBuffer());
-        const url = await uploadToR2(buffer, image.name, image.type);
+        const url = await uploadToR2(buffer, image.name, image.type, session.user.id, id);
         images.push(url);
       }
     }
@@ -153,7 +153,7 @@ export async function PATCH(
     for (const file of newFiles) {
       if (file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const url = await uploadToR2(buffer, file.name, file.type);
+        const url = await uploadToR2(buffer, file.name, file.type, session.user.id, id);
         pdfFiles.push(url);
       }
     }
