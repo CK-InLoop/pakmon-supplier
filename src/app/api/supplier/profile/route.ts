@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       phone: user.supplier.contactPhone,
       address: user.supplier.address,
       description: user.supplier.description,
-      verified: user.emailVerified,
+      verified: !!user.emailVerified,
       createdAt: user.supplier.createdAt,
     };
 
