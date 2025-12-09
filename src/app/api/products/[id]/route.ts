@@ -4,6 +4,20 @@ import { prisma } from '@/lib/prisma';
 import { uploadToR2, deleteFromR2 } from '@/lib/r2';
 import { createProductChunks, ingestToAutoRAG, deleteFromAutoRAG } from '@/lib/autorag';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

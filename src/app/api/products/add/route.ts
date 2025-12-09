@@ -4,6 +4,20 @@ import { prisma } from '@/lib/prisma';
 import { uploadToR2 } from '@/lib/r2';
 import { createProductChunks, ingestToAutoRAG } from '@/lib/autorag';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
