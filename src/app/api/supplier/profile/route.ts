@@ -39,7 +39,8 @@ export async function GET(req: NextRequest) {
       phone: user.supplier.contactPhone,
       address: user.supplier.address,
       description: user.supplier.description,
-      verified: !!user.emailVerified,
+      verified: !!user.supplier.verified, // Use supplier verification status
+      status: user.supplier.status,       // Include explicit status
       createdAt: user.supplier.createdAt,
     };
 
