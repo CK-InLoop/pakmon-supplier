@@ -63,7 +63,7 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       const response = await fetch('/api/products/list');
-      
+
       // Check response status before parsing
       if (!response.ok) {
         // Try to read response as text first to safely parse JSON
@@ -77,7 +77,7 @@ export default function ProductsPage() {
           // If parsing fails, use default error message
           errorData = { error: `Failed to fetch products: ${response.status} ${response.statusText}` };
         }
-        
+
         // Check if redirect is needed (e.g., onboarding not completed)
         if (errorData.redirect) {
           window.location.href = errorData.redirect;
@@ -388,12 +388,12 @@ export default function ProductsPage() {
               <div className="p-6">
                 {/* Status Badge */}
                 <div className="mb-3">
-                  {product.status === 'APPROVED' ? (
+                  {product.status?.toUpperCase() === 'APPROVED' ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium">
                       <CheckCircle className="w-4 h-4" />
                       Approved
                     </span>
-                  ) : product.status === 'REJECTED' ? (
+                  ) : product.status?.toUpperCase() === 'REJECTED' ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full font-medium">
                       <Clock className="w-4 h-4" />
                       Rejected
