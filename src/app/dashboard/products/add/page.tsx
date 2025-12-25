@@ -1,8 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+
+interface UploadedFile {
+  file: File;
+  url: string | null;
+  progress: number;
+  status: 'pending' | 'uploading' | 'complete' | 'error';
+  error?: string;
+}
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -16,11 +24,61 @@ export default function AddProductPage() {
     priceRange: '',
     capacity: '',
   });
-  const [images, setImages] = useState<File[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
+  const [images, setImages] = useState<UploadedFile[]>([]);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Upload a single file to R2
+  const uploadFile = useCallback(async (
+    file: File,
+    type: 'image' | 'pdf',
+    index: number,
+    setterFn: React.Dispatch<React.SetStateAction<UploadedFile[]>>
+  ) => {
+    // Update status to uploading
+    setterFn(prev => prev.map((item, i) =>
+      i === index ? { ...item, status: 'uploading' as const, progress: 10 } : item
+    ));
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      // Simulate progress updates (since fetch doesn't support progress)
+      const progressInterval = setInterval(() => {
+        setterFn(prev => prev.map((item, i) =>
+          i === index && item.status === 'uploading' && item.progress < 90
+            ? { ...item, progress: Math.min(item.progress + 15, 90) }
+            : item
+        ));
+      }, 300);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      // Update status to complete with URL
+      setterFn(prev => prev.map((item, i) =>
+        i === index ? { ...item, status: 'complete' as const, progress: 100, url: data.url } : item
+      ));
+    } catch (err: any) {
+      setterFn(prev => prev.map((item, i) =>
+        i === index ? { ...item, status: 'error' as const, error: err.message } : item
+      ));
+    }
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -28,7 +86,16 @@ export default function AddProductPage() {
       file.type.startsWith('image/')
     );
 
-    setImages([...images, ...validImages]);
+    // Create new upload items
+    const newImages: UploadedFile[] = validImages.map(file => ({
+      file,
+      url: null,
+      progress: 0,
+      status: 'pending' as const,
+    }));
+
+    const startIndex = images.length;
+    setImages(prev => [...prev, ...newImages]);
 
     // Create previews
     validImages.forEach((file) => {
@@ -38,6 +105,14 @@ export default function AddProductPage() {
       };
       reader.readAsDataURL(file);
     });
+
+    // Start uploading immediately
+    validImages.forEach((file, i) => {
+      uploadFile(file, 'image', startIndex + i, setImages);
+    });
+
+    // Reset input
+    e.target.value = '';
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +121,24 @@ export default function AddProductPage() {
       (file) => file.type === 'application/pdf'
     );
 
-    setFiles([...files, ...validFiles]);
+    // Create new upload items
+    const newFiles: UploadedFile[] = validFiles.map(file => ({
+      file,
+      url: null,
+      progress: 0,
+      status: 'pending' as const,
+    }));
+
+    const startIndex = files.length;
+    setFiles(prev => [...prev, ...newFiles]);
+
+    // Start uploading immediately
+    validFiles.forEach((file, i) => {
+      uploadFile(file, 'pdf', startIndex + i, setFiles);
+    });
+
+    // Reset input
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -58,9 +150,51 @@ export default function AddProductPage() {
     setFiles(files.filter((_, i) => i !== index));
   };
 
+  const retryUpload = (index: number, type: 'image' | 'pdf') => {
+    if (type === 'image') {
+      const item = images[index];
+      if (item) {
+        setImages(prev => prev.map((img, i) =>
+          i === index ? { ...img, status: 'pending' as const, progress: 0, error: undefined } : img
+        ));
+        uploadFile(item.file, 'image', index, setImages);
+      }
+    } else {
+      const item = files[index];
+      if (item) {
+        setFiles(prev => prev.map((f, i) =>
+          i === index ? { ...f, status: 'pending' as const, progress: 0, error: undefined } : f
+        ));
+        uploadFile(item.file, 'pdf', index, setFiles);
+      }
+    }
+  };
+
+  // Check if all uploads are complete
+  const allUploadsComplete = () => {
+    const imagesDone = images.every(img => img.status === 'complete');
+    const filesDone = files.every(f => f.status === 'complete');
+    return imagesDone && filesDone;
+  };
+
+  const hasUploadErrors = () => {
+    return images.some(img => img.status === 'error') || files.some(f => f.status === 'error');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Check if uploads are still in progress
+    if (!allUploadsComplete()) {
+      if (hasUploadErrors()) {
+        setError('Some files failed to upload. Please retry or remove them before submitting.');
+      } else {
+        setError('Please wait for all files to finish uploading.');
+      }
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -74,20 +208,18 @@ export default function AddProductPage() {
       formDataToSend.append('priceRange', formData.priceRange);
       formDataToSend.append('capacity', formData.capacity);
 
-      images.forEach((image) => {
-        formDataToSend.append('images', image);
-      });
+      // Send already-uploaded URLs
+      const imageUrls = images.filter(img => img.url).map(img => img.url!);
+      const fileUrls = files.filter(f => f.url).map(f => f.url!);
 
-      files.forEach((file) => {
-        formDataToSend.append('files', file);
-      });
+      formDataToSend.append('imageUrls', JSON.stringify(imageUrls));
+      formDataToSend.append('fileUrls', JSON.stringify(fileUrls));
 
       const response = await fetch('/api/products/add', {
         method: 'POST',
         body: formDataToSend,
       });
 
-      // Safely parse JSON response
       let data: any = {};
       try {
         const text = await response.text();
@@ -96,16 +228,13 @@ export default function AddProductPage() {
         }
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
-        // If we can't parse JSON but response is not ok, show generic error
         if (!response.ok) {
           throw new Error(`Server error (${response.status}): ${response.statusText}`);
         }
-        // If response is ok but can't parse, assume success
         data = { message: 'Product created successfully' };
       }
 
       if (!response.ok) {
-        // Check if redirect is needed (e.g., onboarding not completed)
         if (data.redirect) {
           router.push(data.redirect);
           return;
@@ -119,6 +248,27 @@ export default function AddProductPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Progress bar component
+  const ProgressBar = ({ progress, status }: { progress: number; status: string }) => (
+    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div
+        className={`h-full transition-all duration-300 ${status === 'complete' ? 'bg-green-500' :
+            status === 'error' ? 'bg-red-500' :
+              'bg-blue-500'
+          }`}
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+
+  // Status icon component
+  const StatusIcon = ({ status }: { status: string }) => {
+    if (status === 'complete') return <CheckCircle className="w-5 h-5 text-green-500" />;
+    if (status === 'error') return <AlertCircle className="w-5 h-5 text-red-500" />;
+    if (status === 'uploading') return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
+    return null;
   };
 
   return (
@@ -276,7 +426,7 @@ export default function AddProductPage() {
         <div className="bg-white rounded-lg shadow p-6 space-y-4">
           <h2 className="text-xl font-bold text-gray-900">Product Images</h2>
 
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
             <input
               type="file"
               accept="image/jpeg,image/png"
@@ -294,20 +444,37 @@ export default function AddProductPage() {
                 Click to upload images
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                JPEG or PNG (Max 10MB each)
+                JPEG or PNG (Max 10MB each) - Uploads instantly
               </p>
             </label>
           </div>
 
-          {imagePreviews.length > 0 && (
+          {images.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {imagePreviews.map((preview, index) => (
+              {images.map((image, index) => (
                 <div key={index} className="relative group">
                   <img
-                    src={preview}
+                    src={imagePreviews[index]}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className={`w-full h-32 object-cover rounded-lg ${image.status === 'uploading' ? 'opacity-70' : ''
+                      }`}
                   />
+
+                  {/* Progress overlay */}
+                  {image.status === 'uploading' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                      <div className="text-white text-sm font-medium">
+                        {image.progress}%
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status indicator */}
+                  <div className="absolute top-2 left-2">
+                    <StatusIcon status={image.status} />
+                  </div>
+
+                  {/* Remove button */}
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
@@ -315,6 +482,24 @@ export default function AddProductPage() {
                   >
                     <X className="w-4 h-4" />
                   </button>
+
+                  {/* Retry button for errors */}
+                  {image.status === 'error' && (
+                    <button
+                      type="button"
+                      onClick={() => retryUpload(index, 'image')}
+                      className="absolute bottom-2 left-2 right-2 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded transition"
+                    >
+                      Retry Upload
+                    </button>
+                  )}
+
+                  {/* Progress bar */}
+                  {image.status !== 'complete' && (
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <ProgressBar progress={image.progress} status={image.status} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -327,7 +512,7 @@ export default function AddProductPage() {
             Documents (PDFs)
           </h2>
 
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
             <input
               type="file"
               accept="application/pdf"
@@ -345,7 +530,7 @@ export default function AddProductPage() {
                 Click to upload PDFs
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Product catalogs, manuals, etc.
+                Product catalogs, manuals, etc. - Uploads instantly
               </p>
             </label>
           </div>
@@ -357,25 +542,77 @@ export default function AddProductPage() {
                   key={index}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-700">{file.name}</span>
-                    <span className="text-xs text-gray-500">
-                      ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                    </span>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <StatusIcon status={file.status} />
+                    <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-gray-700 block truncate">{file.file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        ({(file.file.size / 1024 / 1024).toFixed(2)} MB)
+                        {file.status === 'uploading' && ` - ${file.progress}%`}
+                        {file.status === 'error' && (
+                          <span className="text-red-500 ml-2">{file.error}</span>
+                        )}
+                      </span>
+                      {file.status !== 'complete' && (
+                        <div className="mt-1">
+                          <ProgressBar progress={file.progress} status={file.status} />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-2 ml-2">
+                    {file.status === 'error' && (
+                      <button
+                        type="button"
+                        onClick={() => retryUpload(index, 'pdf')}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Retry
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Upload Status Summary */}
+        {(images.length > 0 || files.length > 0) && (
+          <div className={`p-4 rounded-lg ${allUploadsComplete()
+              ? 'bg-green-50 border border-green-200'
+              : hasUploadErrors()
+                ? 'bg-red-50 border border-red-200'
+                : 'bg-blue-50 border border-blue-200'
+            }`}>
+            <div className="flex items-center gap-2">
+              {allUploadsComplete() ? (
+                <>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">All files uploaded successfully!</span>
+                </>
+              ) : hasUploadErrors() ? (
+                <>
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <span className="text-red-700 font-medium">Some uploads failed. Please retry or remove failed files.</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                  <span className="text-blue-700 font-medium">Uploading files... You can continue filling the form.</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Submit Button */}
         <div className="flex gap-4">
@@ -388,14 +625,22 @@ export default function AddProductPage() {
           </button>
           <button
             type="submit"
-            disabled={loading}
-            className="flex-1 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !allUploadsComplete()}
+            className="flex-1 bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
           >
-            {loading ? 'Creating Product...' : 'Create Product'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Creating Product...
+              </span>
+            ) : !allUploadsComplete() ? (
+              'Waiting for uploads...'
+            ) : (
+              'Create Product'
+            )}
           </button>
         </div>
       </form>
     </div>
   );
 }
-

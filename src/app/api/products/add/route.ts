@@ -58,10 +58,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upload images
-    const imageUrls: string[] = [];
-    const images = formData.getAll('images') as File[];
+    // Check for pre-uploaded URLs first (new flow)
+    const imageUrlsJson = formData.get('imageUrls') as string | null;
+    const fileUrlsJson = formData.get('fileUrls') as string | null;
 
+    let imageUrls: string[] = [];
+    let fileUrls: string[] = [];
+
+    if (imageUrlsJson) {
+      try {
+        imageUrls = JSON.parse(imageUrlsJson);
+      } catch (e) {
+        console.error('Error parsing imageUrls:', e);
+      }
+    }
+
+    if (fileUrlsJson) {
+      try {
+        fileUrls = JSON.parse(fileUrlsJson);
+      } catch (e) {
+        console.error('Error parsing fileUrls:', e);
+      }
+    }
+
+    // Legacy support: Upload images if files are provided instead of URLs
+    const images = formData.getAll('images') as File[];
     for (const image of images) {
       if (image.size > 0) {
         try {
@@ -81,10 +102,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Upload PDF files
-    const fileUrls: string[] = [];
+    // Legacy support: Upload PDF files if files are provided instead of URLs
     const files = formData.getAll('files') as File[];
-
     for (const file of files) {
       if (file.size > 0) {
         try {
