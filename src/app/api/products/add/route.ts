@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
     const priceRange = formData.get('priceRange') as string | null;
     const capacity = formData.get('capacity') as string | null;
+    const youtubeUrl = formData.get('youtubeUrl') as string | null;
 
     // Validation
     if (!title || !shortDescription || !fullDescription) {
@@ -150,6 +151,7 @@ export async function POST(req: NextRequest) {
         specifications,
         images: imageUrls,
         pdfFiles: fileUrls,
+        youtubeUrl: youtubeUrl || undefined,
         category,
         tags,
         status: 'PENDING',

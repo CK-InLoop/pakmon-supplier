@@ -13,6 +13,7 @@ interface Product {
   tags: string[];
   images: string[];
   pdfFiles: string[];
+  youtubeUrl?: string;
   signedImageUrls?: string[];
   signedFileUrls?: string[];
 }
@@ -28,6 +29,7 @@ export default function EditProductPage() {
     description: '',
     specs: '',
     tags: '',
+    youtubeUrl: '',
   });
   const [newImages, setNewImages] = useState<File[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -50,7 +52,7 @@ export default function EditProductPage() {
     try {
       const response = await fetch(`/api/products/${productId}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         if (data.redirect) {
           router.push(data.redirect);
@@ -77,7 +79,7 @@ export default function EditProductPage() {
               expiresIn: 3600
             })
           });
-          
+
           if (imageResponse.ok) {
             const imageData = await imageResponse.json();
             signedImageUrls = imageData.signedUrls || validImages;
@@ -99,7 +101,7 @@ export default function EditProductPage() {
               expiresIn: 3600
             })
           });
-          
+
           if (pdfResponse.ok) {
             const pdfData = await pdfResponse.json();
             signedFileUrls = pdfData.signedUrls || validPdfs;
@@ -127,6 +129,7 @@ export default function EditProductPage() {
         description: data.product.fullDescription || data.product.shortDescription,
         specs: data.product.specifications || '',
         tags: data.product.tags?.join(', ') || '',
+        youtubeUrl: data.product.youtubeUrl || '',
       });
     } catch (err: any) {
       setError(err.message);
@@ -189,6 +192,7 @@ export default function EditProductPage() {
       formDataToSend.append('description', formData.description);
       formDataToSend.append('specs', formData.specs);
       formDataToSend.append('tags', formData.tags);
+      formDataToSend.append('youtubeUrl', formData.youtubeUrl);
 
       newImages.forEach((image) => {
         formDataToSend.append('newImages', image);
@@ -375,6 +379,24 @@ export default function EditProductPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              YouTube Video URL
+            </label>
+            <input
+              type="url"
+              value={formData.youtubeUrl}
+              onChange={(e) =>
+                setFormData({ ...formData, youtubeUrl: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+              placeholder="e.g., https://www.youtube.com/watch?v=xxxxx"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Add a YouTube video showcasing your product (optional)
+            </p>
+          </div>
         </div>
 
         {/* Existing and New Images */}
@@ -390,29 +412,29 @@ export default function EditProductPage() {
                 {existingImages.map((url, index) => {
                   const displayUrl = getSignedImageUrl(url);
                   return (
-                  <div key={url} className="relative group">
-                    <img
-                      src={displayUrl}
-                      alt={`Image ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onError={(e) => {
-                        // If signed URL fails, try original URL
-                        if ((e.target as HTMLImageElement).src !== url) {
-                          (e.target as HTMLImageElement).src = url;
-                        } else {
-                          // If both fail, hide the image
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeExistingImage(url)}
-                      className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
+                    <div key={url} className="relative group">
+                      <img
+                        src={displayUrl}
+                        alt={`Image ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                        onError={(e) => {
+                          // If signed URL fails, try original URL
+                          if ((e.target as HTMLImageElement).src !== url) {
+                            (e.target as HTMLImageElement).src = url;
+                          } else {
+                            // If both fail, hide the image
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeExistingImage(url)}
+                        className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   );
                 })}
               </div>

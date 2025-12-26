@@ -123,6 +123,7 @@ export async function PATCH(
     const specs = formData.get('specs') as string | null;
     const tagsString = formData.get('tags') as string;
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
+    const youtubeUrl = formData.get('youtubeUrl') as string | null;
 
     // Handle new image uploads
     let images = [...existingProduct.images];
@@ -179,6 +180,7 @@ export async function PATCH(
         tags: tags.length > 0 ? tags : existingProduct.tags,
         images,
         pdfFiles,
+        youtubeUrl: youtubeUrl !== null ? (youtubeUrl || null) : existingProduct.youtubeUrl,
       },
     });
 

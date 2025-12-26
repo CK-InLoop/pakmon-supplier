@@ -23,6 +23,7 @@ export default function AddProductPage() {
     tags: '',
     priceRange: '',
     capacity: '',
+    youtubeUrl: '',
   });
   const [images, setImages] = useState<UploadedFile[]>([]);
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -237,6 +238,7 @@ export default function AddProductPage() {
       formDataToSend.append('tags', formData.tags);
       formDataToSend.append('priceRange', formData.priceRange);
       formDataToSend.append('capacity', formData.capacity);
+      formDataToSend.append('youtubeUrl', formData.youtubeUrl);
 
       // Send already-uploaded URLs
       const imageUrls = images.filter(img => img.url).map(img => img.url!);
@@ -648,6 +650,24 @@ export default function AddProductPage() {
                 placeholder="e.g., 2000 L/day"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              YouTube Video URL
+            </label>
+            <input
+              type="url"
+              value={formData.youtubeUrl}
+              onChange={(e) =>
+                setFormData({ ...formData, youtubeUrl: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+              placeholder="e.g., https://www.youtube.com/watch?v=xxxxx"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Add a YouTube video showcasing your product (optional)
+            </p>
           </div>
         </div>
 

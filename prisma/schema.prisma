@@ -88,6 +88,7 @@ model products {
   images    String[]
   documents String[]
   pdfFiles  String[] // PDF documents/brochures
+  youtubeUrl String?  // YouTube video URL for product demo/overview
 
   // Status tracking
   status          String  @default("PENDING") // PENDING, APPROVED, REJECTED
