@@ -5,6 +5,9 @@ import { uploadToR2 } from '@/lib/r2';
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
+// Increase timeout for file uploads (60 seconds)
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();
@@ -37,6 +40,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Log file details for debugging
+        console.log(`Uploading file: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
+
         // Validate file type
         if (type === 'image' && !file.type.startsWith('image/')) {
             return NextResponse.json(
@@ -64,6 +70,8 @@ export async function POST(req: NextRequest) {
         // Upload to R2
         const buffer = Buffer.from(await file.arrayBuffer());
         const url = await uploadToR2(buffer, file.name, file.type, session.user.id, 'new');
+
+        console.log(`Upload successful: ${file.name} -> ${url}`);
 
         return NextResponse.json({
             success: true,

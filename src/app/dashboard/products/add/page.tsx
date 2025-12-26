@@ -42,24 +42,21 @@ export default function AddProductPage() {
       i === index ? { ...item, status: 'uploading' as const, progress: 10 } : item
     ));
 
+    let progressInterval: NodeJS.Timeout | null = null;
+
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
 
       // Simulate progress updates (since fetch doesn't support progress)
-      let progressInterval: NodeJS.Timeout | null = setInterval(() => {
+      progressInterval = setInterval(() => {
         setterFn(prev => prev.map((item, i) =>
           i === index && item.status === 'uploading' && item.progress < 85
             ? { ...item, progress: Math.min(item.progress + 10, 85) }
             : item
         ));
-      }, 200);
-
-      // Set progress to 90% before making the API call
-      setterFn(prev => prev.map((item, i) =>
-        i === index ? { ...item, progress: 90 } : item
-      ));
+      }, 300);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -77,10 +74,21 @@ export default function AddProductPage() {
         i === index ? { ...item, progress: 95 } : item
       ));
 
-      const data = await response.json();
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse upload response:', parseError);
+        throw new Error('Server returned invalid response');
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || `Upload failed with status ${response.status}`);
+      }
+
+      if (!data.url) {
+        throw new Error('Upload succeeded but no URL returned');
       }
 
       // Update status to complete with URL
@@ -88,8 +96,16 @@ export default function AddProductPage() {
         i === index ? { ...item, status: 'complete' as const, progress: 100, url: data.url } : item
       ));
     } catch (err: any) {
+      // Always clear interval on error
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+
+      console.error('Upload error for file:', file.name, err);
+
       setterFn(prev => prev.map((item, i) =>
-        i === index ? { ...item, status: 'error' as const, error: err.message } : item
+        i === index ? { ...item, status: 'error' as const, error: err.message || 'Upload failed' } : item
       ));
     }
   }, []);

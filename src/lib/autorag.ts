@@ -76,17 +76,38 @@ export async function deleteFromAutoRAG(documentIds: string[]): Promise<void> {
 }
 
 export function chunkText(text: string, maxTokens: number = 500, overlap: number = 50): string[] {
+  // Early return for empty or very short text
+  if (!text || text.trim().length === 0) {
+    return [];
+  }
+
   // Simple chunking by character count (approximating tokens as ~4 chars each)
   const maxChars = maxTokens * 4;
-  const overlapChars = overlap * 4;
+  const overlapChars = Math.min(overlap * 4, maxChars - 1); // Ensure overlap is less than maxChars
   const chunks: string[] = [];
 
+  // If text is shorter than maxChars, return it as a single chunk
+  if (text.length <= maxChars) {
+    return [text];
+  }
+
   let start = 0;
-  while (start < text.length) {
+  let iterations = 0;
+  const maxIterations = Math.ceil(text.length / (maxChars - overlapChars)) + 10; // Safety limit
+
+  while (start < text.length && iterations < maxIterations) {
+    iterations++;
     const end = Math.min(start + maxChars, text.length);
     chunks.push(text.slice(start, end));
-    start = end - overlapChars;
-    if (start >= text.length) break;
+
+    // If we've reached the end, break
+    if (end >= text.length) {
+      break;
+    }
+
+    // Move start forward, ensuring we always make progress
+    const nextStart = end - overlapChars;
+    start = Math.max(nextStart, start + 1); // Always move forward by at least 1
   }
 
   return chunks;
