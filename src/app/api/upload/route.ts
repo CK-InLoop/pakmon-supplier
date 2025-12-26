@@ -5,8 +5,8 @@ import { uploadToR2 } from '@/lib/r2';
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-// Increase timeout for file uploads (60 seconds)
-export const maxDuration = 60;
+// Increase timeout for file uploads (5 minutes)
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
     try {
