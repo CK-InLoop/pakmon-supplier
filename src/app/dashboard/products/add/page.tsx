@@ -610,6 +610,10 @@ export default function AddProductPage() {
               <option value="Processing Machinery">Processing Machinery</option>
               <option value="Storage Solutions">Storage Solutions</option>
               <option value="Quality Control">Quality Control</option>
+              <option value="Ingredients Suppliers">Ingredients Suppliers</option>
+              <option value="Lab Equipment Suppliers">Lab Equipment Suppliers</option>
+              <option value="Packaging Material Suppliers">Packaging Material Suppliers</option>
+              <option value="Lab Instruments">Lab Instruments</option>
               <option value="Other">Other</option>
             </select>
           </div>
