@@ -48,20 +48,34 @@ export default function AddProductPage() {
       formData.append('type', type);
 
       // Simulate progress updates (since fetch doesn't support progress)
-      const progressInterval = setInterval(() => {
+      let progressInterval: NodeJS.Timeout | null = setInterval(() => {
         setterFn(prev => prev.map((item, i) =>
-          i === index && item.status === 'uploading' && item.progress < 90
-            ? { ...item, progress: Math.min(item.progress + 15, 90) }
+          i === index && item.status === 'uploading' && item.progress < 85
+            ? { ...item, progress: Math.min(item.progress + 10, 85) }
             : item
         ));
-      }, 300);
+      }, 200);
+
+      // Set progress to 90% before making the API call
+      setterFn(prev => prev.map((item, i) =>
+        i === index ? { ...item, progress: 90 } : item
+      ));
 
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      clearInterval(progressInterval);
+      // Clear interval immediately after response
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+
+      // Set progress to 95% while processing response
+      setterFn(prev => prev.map((item, i) =>
+        i === index ? { ...item, progress: 95 } : item
+      ));
 
       const data = await response.json();
 
@@ -255,8 +269,8 @@ export default function AddProductPage() {
     <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
       <div
         className={`h-full transition-all duration-300 ${status === 'complete' ? 'bg-green-500' :
-            status === 'error' ? 'bg-red-500' :
-              'bg-blue-500'
+          status === 'error' ? 'bg-red-500' :
+            'bg-blue-500'
           }`}
         style={{ width: `${progress}%` }}
       />
@@ -287,6 +301,201 @@ export default function AddProductPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Image Upload - First for convenience */}
+        <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Product Images</h2>
+          <p className="text-sm text-gray-500">Upload images first while you prepare product details</p>
+
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="image/jpeg,image/png"
+              multiple
+              onChange={handleImageChange}
+              className="hidden"
+              id="image-upload"
+            />
+            <label
+              htmlFor="image-upload"
+              className="cursor-pointer flex flex-col items-center"
+            >
+              <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
+              <p className="text-gray-600 font-medium">
+                Click to upload images
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                JPEG or PNG (Max 10MB each) - Uploads instantly
+              </p>
+            </label>
+          </div>
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={imagePreviews[index]}
+                    alt={`Preview ${index + 1}`}
+                    className={`w-full h-32 object-cover rounded-lg ${image.status === 'uploading' ? 'opacity-70' : ''
+                      }`}
+                  />
+
+                  {/* Progress overlay */}
+                  {image.status === 'uploading' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                      <div className="text-white text-sm font-medium">
+                        {image.progress}%
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status indicator */}
+                  <div className="absolute top-2 left-2">
+                    <StatusIcon status={image.status} />
+                  </div>
+
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+
+                  {/* Retry button for errors */}
+                  {image.status === 'error' && (
+                    <button
+                      type="button"
+                      onClick={() => retryUpload(index, 'image')}
+                      className="absolute bottom-2 left-2 right-2 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded transition"
+                    >
+                      Retry Upload
+                    </button>
+                  )}
+
+                  {/* Progress bar */}
+                  {image.status !== 'complete' && (
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <ProgressBar progress={image.progress} status={image.status} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* File Upload - Second for convenience */}
+        <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">
+            Documents (PDFs)
+          </h2>
+          <p className="text-sm text-gray-500">Upload catalogs and manuals while filling the form</p>
+
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="application/pdf"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer flex flex-col items-center"
+            >
+              <FileText className="w-12 h-12 text-gray-400 mb-2" />
+              <p className="text-gray-600 font-medium">
+                Click to upload PDFs
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Product catalogs, manuals, etc. - Uploads instantly
+              </p>
+            </label>
+          </div>
+
+          {files.length > 0 && (
+            <div className="space-y-2">
+              {files.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <StatusIcon status={file.status} />
+                    <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-gray-700 block truncate">{file.file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        ({(file.file.size / 1024 / 1024).toFixed(2)} MB)
+                        {file.status === 'uploading' && ` - ${file.progress}%`}
+                        {file.status === 'error' && (
+                          <span className="text-red-500 ml-2">{file.error}</span>
+                        )}
+                      </span>
+                      {file.status !== 'complete' && (
+                        <div className="mt-1">
+                          <ProgressBar progress={file.progress} status={file.status} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    {file.status === 'error' && (
+                      <button
+                        type="button"
+                        onClick={() => retryUpload(index, 'pdf')}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Retry
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Upload Status Summary */}
+        {(images.length > 0 || files.length > 0) && (
+          <div className={`p-4 rounded-lg ${allUploadsComplete()
+            ? 'bg-green-50 border border-green-200'
+            : hasUploadErrors()
+              ? 'bg-red-50 border border-red-200'
+              : 'bg-blue-50 border border-blue-200'
+            }`}>
+            <div className="flex items-center gap-2">
+              {allUploadsComplete() ? (
+                <>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">All files uploaded successfully!</span>
+                </>
+              ) : hasUploadErrors() ? (
+                <>
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <span className="text-red-700 font-medium">Some uploads failed. Please retry or remove failed files.</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                  <span className="text-blue-700 font-medium">Uploading files... You can continue filling the form below.</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Product Information - After uploads */}
         <div className="bg-white rounded-lg shadow p-6 space-y-6">
           <h2 className="text-xl font-bold text-gray-900">
             Product Information
@@ -421,198 +630,6 @@ export default function AddProductPage() {
             </div>
           </div>
         </div>
-
-        {/* Image Upload */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-xl font-bold text-gray-900">Product Images</h2>
-
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-            <input
-              type="file"
-              accept="image/jpeg,image/png"
-              multiple
-              onChange={handleImageChange}
-              className="hidden"
-              id="image-upload"
-            />
-            <label
-              htmlFor="image-upload"
-              className="cursor-pointer flex flex-col items-center"
-            >
-              <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-              <p className="text-gray-600 font-medium">
-                Click to upload images
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                JPEG or PNG (Max 10MB each) - Uploads instantly
-              </p>
-            </label>
-          </div>
-
-          {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={imagePreviews[index]}
-                    alt={`Preview ${index + 1}`}
-                    className={`w-full h-32 object-cover rounded-lg ${image.status === 'uploading' ? 'opacity-70' : ''
-                      }`}
-                  />
-
-                  {/* Progress overlay */}
-                  {image.status === 'uploading' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                      <div className="text-white text-sm font-medium">
-                        {image.progress}%
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Status indicator */}
-                  <div className="absolute top-2 left-2">
-                    <StatusIcon status={image.status} />
-                  </div>
-
-                  {/* Remove button */}
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-
-                  {/* Retry button for errors */}
-                  {image.status === 'error' && (
-                    <button
-                      type="button"
-                      onClick={() => retryUpload(index, 'image')}
-                      className="absolute bottom-2 left-2 right-2 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded transition"
-                    >
-                      Retry Upload
-                    </button>
-                  )}
-
-                  {/* Progress bar */}
-                  {image.status !== 'complete' && (
-                    <div className="absolute bottom-0 left-0 right-0 p-2">
-                      <ProgressBar progress={image.progress} status={image.status} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* File Upload */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-xl font-bold text-gray-900">
-            Documents (PDFs)
-          </h2>
-
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-            <input
-              type="file"
-              accept="application/pdf"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer flex flex-col items-center"
-            >
-              <FileText className="w-12 h-12 text-gray-400 mb-2" />
-              <p className="text-gray-600 font-medium">
-                Click to upload PDFs
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Product catalogs, manuals, etc. - Uploads instantly
-              </p>
-            </label>
-          </div>
-
-          {files.length > 0 && (
-            <div className="space-y-2">
-              {files.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <StatusIcon status={file.status} />
-                    <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-sm text-gray-700 block truncate">{file.file.name}</span>
-                      <span className="text-xs text-gray-500">
-                        ({(file.file.size / 1024 / 1024).toFixed(2)} MB)
-                        {file.status === 'uploading' && ` - ${file.progress}%`}
-                        {file.status === 'error' && (
-                          <span className="text-red-500 ml-2">{file.error}</span>
-                        )}
-                      </span>
-                      {file.status !== 'complete' && (
-                        <div className="mt-1">
-                          <ProgressBar progress={file.progress} status={file.status} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-2">
-                    {file.status === 'error' && (
-                      <button
-                        type="button"
-                        onClick={() => retryUpload(index, 'pdf')}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Retry
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Upload Status Summary */}
-        {(images.length > 0 || files.length > 0) && (
-          <div className={`p-4 rounded-lg ${allUploadsComplete()
-              ? 'bg-green-50 border border-green-200'
-              : hasUploadErrors()
-                ? 'bg-red-50 border border-red-200'
-                : 'bg-blue-50 border border-blue-200'
-            }`}>
-            <div className="flex items-center gap-2">
-              {allUploadsComplete() ? (
-                <>
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-green-700 font-medium">All files uploaded successfully!</span>
-                </>
-              ) : hasUploadErrors() ? (
-                <>
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                  <span className="text-red-700 font-medium">Some uploads failed. Please retry or remove failed files.</span>
-                </>
-              ) : (
-                <>
-                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                  <span className="text-blue-700 font-medium">Uploading files... You can continue filling the form.</span>
-                </>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Submit Button */}
         <div className="flex gap-4">
