@@ -187,7 +187,14 @@ async function getSupplierAnalytics(userId: string) {
       totalMatches,
       totalViews,
     },
-    products,
+    products: products.map(p => ({
+      id: p.id,
+      title: p.name,
+      matchCount: p.recommendations,
+      viewCount: p.views,
+      status: p.status,
+      createdAt: p.createdAt,
+    })),
   };
 }
 

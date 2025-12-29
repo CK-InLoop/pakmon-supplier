@@ -205,41 +205,44 @@ export default function AnalyticsPage() {
                 {analytics.products.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {product.title}
+                      <div className="flex flex-col gap-1">
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.title || 'Untitled Product'}
+                        </div>
+                        {product.status === 'APPROVED' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium w-fit">
+                            <CheckCircle className="w-3 h-3" />
+                            Approved
+                          </span>
+                        ) : product.status === 'REJECTED' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium w-fit">
+                            Rejected
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium w-fit">
+                            Pending
+                          </span>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.status === 'APPROVED' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                          <CheckCircle className="w-3 h-3" />
-                          Approved
-                        </span>
-                      ) : product.status === 'REJECTED' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
-                          <Clock className="w-3 h-3" />
-                          Rejected
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
-                          Pending
-                        </span>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-sm text-gray-900">
                         <TrendingUp className="w-4 h-4 text-blue-500" />
-                        {product.matchCount}
+                        {product.matchCount || 0}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-sm text-gray-900">
                         <Eye className="w-4 h-4 text-indigo-500" />
-                        {product.viewCount}
+                        {product.viewCount || 0}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(product.createdAt).toLocaleDateString()}
+                      {product.createdAt ? new Date(product.createdAt).toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      }) : '-'}
                     </td>
                   </tr>
                 ))}
