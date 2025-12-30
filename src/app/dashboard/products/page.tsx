@@ -269,10 +269,25 @@ export default function ProductsPage() {
   };
 
   const getShareUrl = (productId: string) => {
-    // Use the public product page URL
-    const baseUrl = typeof window !== 'undefined'
-      ? window.location.origin.replace('supplier-flav', 'www').replace('localhost:3001', 'localhost:3000')
-      : 'https://www.flavidairysolution.com';
+    // Use the public product page URL on the main consumer website
+    let baseUrl = 'https://www.flavidairysolution.com';
+
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+
+      // Handle localhost development
+      if (origin.includes('localhost')) {
+        baseUrl = origin.replace(':3001', ':3000'); // supplier port -> consumer port
+      }
+      // Handle production - replace supplier subdomain with www
+      else if (origin.includes('supplier.flavidairysolution.com')) {
+        baseUrl = 'https://www.flavidairysolution.com';
+      }
+      else if (origin.includes('supplier-flav')) {
+        baseUrl = origin.replace('supplier-flav', 'www');
+      }
+    }
+
     return `${baseUrl}/products/${productId}`;
   };
 
