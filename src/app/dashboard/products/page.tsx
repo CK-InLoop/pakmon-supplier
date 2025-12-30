@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, CheckCircle, Clock, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, Clock, Eye, Share2, Check, ExternalLink } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -29,6 +29,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -267,6 +268,39 @@ export default function ProductsPage() {
     }
   };
 
+  const getShareUrl = (productId: string) => {
+    // Use the public product page URL
+    const baseUrl = typeof window !== 'undefined'
+      ? window.location.origin.replace('supplier-flav', 'www').replace('localhost:3001', 'localhost:3000')
+      : 'https://www.flavidairysolution.com';
+    return `${baseUrl}/products/${productId}`;
+  };
+
+  const handleShare = async (productId: string, productTitle: string) => {
+    const shareUrl = getShareUrl(productId);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: productTitle,
+          text: `Check out ${productTitle} on Flavi Dairy Solutions!`,
+          url: shareUrl
+        });
+      } catch (error) {
+        // User cancelled or error - fallback to copy
+        copyToClipboard(productId, shareUrl);
+      }
+    } else {
+      copyToClipboard(productId, shareUrl);
+    }
+  };
+
+  const copyToClipboard = (productId: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(productId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -465,6 +499,18 @@ export default function ProductsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
+                  {/* Share Button */}
+                  <button
+                    onClick={() => handleShare(product.id, product.title)}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-1"
+                    title="Share product link"
+                  >
+                    {copiedId === product.id ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Share2 className="w-4 h-4" />
+                    )}
+                  </button>
                   <Link
                     href={`/dashboard/products/${product.id}/edit`}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
@@ -480,6 +526,31 @@ export default function ProductsPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Share URL Display (for approved products) */}
+                {product.status?.toUpperCase() === 'APPROVED' && (
+                  <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <ExternalLink className="w-3 h-3" />
+                      Shareable Link:
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={getShareUrl(product.id)}
+                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 text-gray-600 truncate"
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                      />
+                      <button
+                        onClick={() => copyToClipboard(product.id, getShareUrl(product.id))}
+                        className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium transition"
+                      >
+                        {copiedId === product.id ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
