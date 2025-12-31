@@ -120,11 +120,17 @@ body {
 
 /* Professional Typography */
 .heading-1 {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--foreground);
+}
+
+@media (min-width: 768px) {
+  .heading-1 {
+    font-size: 3rem;
+  }
 }
 
 .heading-2 {
@@ -136,9 +142,16 @@ body {
 }
 
 .body-large {
-  font-size: 1.125rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--muted-foreground);
+}
+
+@media (min-width: 768px) {
+  .body-large {
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
 }
 
 /* Professional Sidebar */
