@@ -79,6 +79,8 @@ model products {
   
   // Pricing
   price        Float?
+  priceRange   String?  // Text-based price range (e.g., "₹50,000 - ₹1,00,000")
+  capacity     String?  // Product capacity (e.g., "2000 L/day")
   unit         String?
   minOrderQty  Float?
   availability String  @default("available") // available, out_of_stock

@@ -152,6 +152,8 @@ export async function POST(req: NextRequest) {
         images: imageUrls,
         pdfFiles: fileUrls,
         youtubeUrl: youtubeUrl || undefined,
+        priceRange: priceRange || undefined,
+        capacity: capacity || undefined,
         category,
         tags,
         status: 'PENDING',
