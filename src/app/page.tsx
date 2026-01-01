@@ -13,20 +13,20 @@ export default async function Home() {
     <div className="min-h-screen professional-gradient">
       <div className="container-pro py-6">
         {/* Header */}
-        <nav className="bg-white border border-gray-200 rounded-lg px-8 py-4 mb-16 flex justify-between items-center shadow-sm">
-          <div className="text-2xl font-bold text-gray-900">
+        <nav className="bg-white border border-gray-200 rounded-lg px-4 md:px-8 py-3 md:py-4 mb-6 md:mb-16 flex justify-between items-center shadow-sm">
+          <div className="text-xl md:text-2xl font-bold text-gray-900">
             Flavi Dairy Solutions
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3">
             <Link
               href="/login"
-              className="px-6 py-2.5 text-gray-700 hover:text-blue-600 transition font-medium text-sm"
+              className="px-4 md:px-6 py-2 md:py-2.5 text-gray-700 hover:text-blue-600 transition font-medium text-xs md:text-sm"
             >
               Login
             </Link>
             <Link
               href="/signup"
-              className="btn-primary"
+              className="btn-primary text-xs md:text-sm px-4 md:px-6 py-2 md:py-3"
             >
               Sign Up
             </Link>
@@ -34,16 +34,16 @@ export default async function Home() {
         </nav>
 
         {/* Hero Section */}
-        <div className="text-center max-w-5xl mx-auto py-20">
+        <div className="text-center max-w-5xl mx-auto py-8 md:py-20">
           <div className="badge-primary mb-6 inline-block">
             SUPPLIER PORTAL
           </div>
-          <h1 className="heading-1 mb-6">
+          <h1 className="heading-1 mb-4 md:mb-6">
             <span className="text-gray-900">Professional Product Management</span>
             <br />
             <span className="text-blue-600">for Modern Suppliers</span>
           </h1>
-          <p className="body-large max-w-2xl mx-auto mb-12">
+          <p className="body-large max-w-2xl mx-auto mb-8 md:mb-12">
             Join Flavi Dairy Solutions and leverage AI-powered product discovery to reach more customers and grow your business efficiently.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
