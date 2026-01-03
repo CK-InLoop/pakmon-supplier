@@ -27,24 +27,32 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // First, get the supplier profile for this user
-    const supplier = await prisma.suppliers.findUnique({
-      where: { userId: session.user.id },
-    });
+    const { searchParams } = new URL(req.url);
+    const supplierId = searchParams.get('supplierId');
 
-    if (!supplier) {
-      return NextResponse.json(
-        {
-          error: 'Supplier profile not found. Please complete onboarding first.',
-          redirect: '/onboarding'
-        },
-        { status: 404 }
-      );
+    let targetSupplierId = supplierId;
+
+    if (!targetSupplierId) {
+      // First, get the supplier profile for this user
+      const supplier = await prisma.suppliers.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (!supplier) {
+        return NextResponse.json(
+          {
+            error: 'Supplier profile not found. Please complete onboarding first.',
+            redirect: '/onboarding'
+          },
+          { status: 404 }
+        );
+      }
+      targetSupplierId = supplier.id;
     }
 
     const products = await prisma.products.findMany({
       where: {
-        supplierId: supplier.id,
+        supplierId: targetSupplierId,
       },
       orderBy: {
         createdAt: 'desc',

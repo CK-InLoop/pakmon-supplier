@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Edit, Trash2, CheckCircle, Clock, Eye, Share2, Check, ExternalLink } from 'lucide-react';
 
 interface Product {
@@ -25,6 +26,9 @@ interface Product {
 }
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const supplierId = searchParams.get('supplierId');
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
@@ -33,7 +37,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [supplierId]);
 
   // Helper function to validate URLs
   const isValidUrl = (url: string | null | undefined): boolean => {
