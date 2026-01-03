@@ -1,6 +1,6 @@
 /**
  * Migration script to update existing R2 URLs in the database
- * from old domain to new custom domain (cdn.flavidairysolution.com)
+ * from old domain to new custom domain (cdn.pakmondairysolution.com)
  * 
  * Usage: npx tsx scripts/migrate-r2-urls.ts
  */
@@ -18,7 +18,7 @@ const OLD_DOMAINS = [
 ];
 
 // New domain
-const NEW_DOMAIN = 'https://cdn.flavidairysolution.com';
+const NEW_DOMAIN = 'https://cdn.pakmondairysolution.com';
 
 async function migrateR2Urls() {
   console.log('Starting R2 URL migration...\n');
@@ -120,4 +120,5 @@ migrateR2Urls()
     console.error('Fatal error:', error);
     process.exit(1);
   });
+
 

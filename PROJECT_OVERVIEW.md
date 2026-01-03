@@ -1,4 +1,4 @@
-# Flavi Dairy Solutions - Supplier Portal
+# Pakmon Dairy Solutions - Supplier Portal
 ## Complete Project Overview
 
 ---
@@ -7,7 +7,7 @@
 
 A comprehensive Next.js-based supplier management portal that enables dairy product suppliers to register, manage their products, and leverage AI-powered search through Cloudflare AutoRAG integration. The system handles file uploads to Cloudflare R2, automatic product indexing, and provides analytics on product visibility.
 
-**Domain**: `supplier.flavidairysolution.com`
+**Domain**: `supplier.pakmondairysolution.com`
 
 ---
 
@@ -106,7 +106,7 @@ Signup → Email Verification → Onboarding Form → Dashboard
 **File Naming**: `suppliers/{timestamp}-{filename}`
 
 **Configuration**:
-- Bucket: `chat-flavi`
+- Bucket: `chat-pakmon`
 - Endpoint: Account-specific R2 endpoint
 - Public URL: Custom domain or R2.dev subdomain
 
@@ -485,9 +485,10 @@ For questions or issues:
 
 ## 📝 License
 
-Proprietary - Flavi Dairy Solutions © 2025
+Proprietary - Pakmon Dairy Solutions © 2025
 
 ---
 
 **Built with modern web technologies for scalability and performance.**
+
 

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Supplier Portal - Flavi Dairy Solutions",
-  description: "Manage your products and grow your business with Flavi Dairy Solutions",
+  title: "Supplier Portal - Pakmon Dairy Solutions",
+  description: "Manage your products and grow your business with Pakmon Dairy Solutions",
 };
 
 export default function RootLayout({

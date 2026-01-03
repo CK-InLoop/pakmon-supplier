@@ -155,7 +155,7 @@ function LoginContent() {
 
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs text-blue-700">
-            <strong>New to Flavi Dairy?</strong> After signing up, you'll receive a verification email.
+            <strong>New to Pakmon Dairy?</strong> After signing up, you'll receive a verification email.
             Click the link to verify your account, then complete your profile before logging in.
           </p>
         </div>

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 
 export default async function Home() {
   const session = await auth();
-  
+
   if (session) {
     redirect('/dashboard');
   }
@@ -15,7 +15,7 @@ export default async function Home() {
         {/* Header */}
         <nav className="bg-white border border-gray-200 rounded-lg px-4 md:px-8 py-3 md:py-4 mb-6 md:mb-16 flex justify-between items-center shadow-sm">
           <div className="text-xl md:text-2xl font-bold text-gray-900">
-            Flavi Dairy Solutions
+            Pakmon Dairy Solutions
           </div>
           <div className="flex gap-2 md:gap-3">
             <Link
@@ -44,7 +44,7 @@ export default async function Home() {
             <span className="text-blue-600">for Modern Suppliers</span>
           </h1>
           <p className="body-large max-w-2xl mx-auto mb-8 md:mb-12">
-            Join Flavi Dairy Solutions and leverage AI-powered product discovery to reach more customers and grow your business efficiently.
+            Join Pakmon Dairy Solutions and leverage AI-powered product discovery to reach more customers and grow your business efficiently.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link

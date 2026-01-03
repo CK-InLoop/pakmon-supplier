@@ -7,9 +7,9 @@ export async function sendVerificationEmail(email: string, token: string, name: 
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'info@flavidairysolution.com',
+      from: 'info@pakmondairysolution.com',
       to: [email],
-      subject: 'Verify Your Email - Flavi Dairy Solutions Supplier Portal',
+      subject: 'Verify Your Email - Pakmon Dairy Solutions Supplier Portal',
       html: `
         <!DOCTYPE html>
         <html>
@@ -26,11 +26,11 @@ export async function sendVerificationEmail(email: string, token: string, name: 
           <body>
             <div class="container">
               <div class="header">
-                <h1>Welcome to Flavi Dairy Solutions</h1>
+                <h1>Welcome to Pakmon Dairy Solutions</h1>
               </div>
               <div class="content">
                 <p>Hi ${name},</p>
-                <p>Thank you for registering as a supplier with Flavi Dairy Solutions!</p>
+                <p>Thank you for registering as a supplier with Pakmon Dairy Solutions!</p>
                 <p>Please click the button below to verify your email address and activate your account:</p>
                 <div style="text-align: center;">
                   <a href="${verificationUrl}" class="button" target="_blank" style="color: #ffffff !important;">Verify Email Address</a>
@@ -41,7 +41,7 @@ export async function sendVerificationEmail(email: string, token: string, name: 
                 <p>If you didn't create an account, you can safely ignore this email.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2025 Flavi Dairy Solutions. All rights reserved.</p>
+                <p>&copy; 2025 Pakmon Dairy Solutions. All rights reserved.</p>
               </div>
             </div>
           </body>
@@ -67,9 +67,9 @@ export async function sendPasswordResetEmail(email: string, token: string, name:
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'info@flavidairysolution.com',
+      from: 'info@pakmondairysolution.com',
       to: [email],
-      subject: 'Reset Your Password - Flavi Dairy Solutions',
+      subject: 'Reset Your Password - Pakmon Dairy Solutions',
       html: `
         <!DOCTYPE html>
         <html>
@@ -102,4 +102,5 @@ export async function sendPasswordResetEmail(email: string, token: string, name:
     throw error;
   }
 }
+
 

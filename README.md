@@ -1,6 +1,6 @@
-# Flavi Dairy Solutions - Supplier Portal
+# Pakmon Dairy Solutions - Supplier Portal
 
-A Next.js-based supplier portal for Flavi Dairy Solutions that enables suppliers to manage their products with AI-powered search capabilities through Cloudflare AutoRAG.
+A Next.js-based supplier portal for Pakmon Dairy Solutions that enables suppliers to manage their products with AI-powered search capabilities through Cloudflare AutoRAG.
 
 ## 🚀 Features
 
@@ -62,7 +62,7 @@ A Next.js-based supplier portal for Flavi Dairy Solutions that enables suppliers
 
 ```bash
 git clone <repository-url>
-cd supplier-flav
+cd supplier-pakmon
 ```
 
 2. **Install dependencies**
@@ -88,13 +88,13 @@ EMAIL_SERVER_HOST="smtp.gmail.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email@gmail.com"
 EMAIL_SERVER_PASSWORD="your-app-password"
-EMAIL_FROM="noreply@flavidairysolution.com"
+EMAIL_FROM="noreply@pakmondairysolution.com"
 
 # Cloudflare R2
 R2_ACCOUNT_ID="62823221dfff75d61e6a8dfc45ad4148"
 R2_ACCESS_KEY_ID="your-access-key-id"
 R2_SECRET_ACCESS_KEY="h47PMiKHD7TGU14JkBjJ3MCiYZgIGwOQ-qdRyL0E"
-R2_BUCKET_NAME="chat-flavi"
+R2_BUCKET_NAME="chat-pakmon"
 R2_ENDPOINT="https://62823221dfff75d61e6a8dfc45ad4148.r2.cloudflarestorage.com"
 R2_PUBLIC_URL="https://pub-your-r2-public-domain.r2.dev"
 
@@ -136,7 +136,7 @@ npm start
 ## 📁 Project Structure
 
 ```
-supplier-flav/
+supplier-pakmon/
 ├── src/
 │   ├── app/                        # Next.js App Router
 │   │   ├── api/                    # API Routes
@@ -313,7 +313,7 @@ Ensure Node.js 18+ support and configure environment variables accordingly.
 
 ## 📄 License
 
-This project is proprietary software for Flavi Dairy Solutions.
+This project is proprietary software for Pakmon Dairy Solutions.
 
 ## 🤝 Support
 
@@ -322,3 +322,4 @@ For support, contact the development team or open an issue in the repository.
 ---
 
 Built with ❤️ using Next.js, Cloudflare, and modern web technologies.
+

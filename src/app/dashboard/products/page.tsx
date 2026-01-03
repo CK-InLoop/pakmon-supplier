@@ -270,7 +270,7 @@ export default function ProductsPage() {
 
   const getShareUrl = (productId: string) => {
     // Use the public product page URL on the main consumer website
-    let baseUrl = 'https://www.flavidairysolution.com';
+    let baseUrl = 'https://www.pakmondairysolution.com';
 
     if (typeof window !== 'undefined') {
       const origin = window.location.origin;
@@ -280,11 +280,11 @@ export default function ProductsPage() {
         baseUrl = origin.replace(':3001', ':3000'); // supplier port -> consumer port
       }
       // Handle production - replace supplier subdomain with www
-      else if (origin.includes('supplier.flavidairysolution.com')) {
-        baseUrl = 'https://www.flavidairysolution.com';
+      else if (origin.includes('supplier.pakmondairysolution.com')) {
+        baseUrl = 'https://www.pakmondairysolution.com';
       }
-      else if (origin.includes('supplier-flav')) {
-        baseUrl = origin.replace('supplier-flav', 'www');
+      else if (origin.includes('supplier-pakmon')) {
+        baseUrl = origin.replace('supplier-pakmon', 'www');
       }
     }
 
@@ -298,7 +298,7 @@ export default function ProductsPage() {
       try {
         await navigator.share({
           title: productTitle,
-          text: `Check out ${productTitle} on Flavi Dairy Solutions!`,
+          text: `Check out ${productTitle} on Pakmon Dairy Solutions!`,
           url: shareUrl
         });
       } catch (error) {

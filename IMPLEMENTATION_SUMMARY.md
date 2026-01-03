@@ -4,7 +4,7 @@
 
 ### 1. Environment Configuration Documentation
 - Created `UPDATE_R2_DOMAIN.md` with clear instructions for updating `.env` file
-- Documented the exact change needed: `R2_PUBLIC_URL="https://cdn.flavidairysolution.com"`
+- Documented the exact change needed: `R2_PUBLIC_URL="https://cdn.pakmondairysolution.com"`
 
 ### 2. Code Enhancements
 - **Enhanced `src/lib/r2.ts`** with improved URL extraction logic:
@@ -26,7 +26,7 @@
 ### 1. Update .env File
 Update your `.env` file:
 ```env
-R2_PUBLIC_URL="https://cdn.flavidairysolution.com"
+R2_PUBLIC_URL="https://cdn.pakmondairysolution.com"
 ```
 
 ### 2. Restart Application
@@ -39,7 +39,7 @@ npm run build && npm start
 
 ### 3. Test File Operations
 - Upload a new product with images and PDFs
-- Verify URLs in database use `cdn.flavidairysolution.com`
+- Verify URLs in database use `cdn.pakmondairysolution.com`
 - Test product update (add/remove files)
 - Test product deletion
 
@@ -54,7 +54,7 @@ npm run migrate:r2-urls
 
 After updating `.env` and restarting:
 
-- [ ] New uploads use `cdn.flavidairysolution.com` in URLs
+- [ ] New uploads use `cdn.pakmondairysolution.com` in URLs
 - [ ] Files are accessible via browser at the new domain
 - [ ] Product updates work correctly (add/remove files)
 - [ ] Product deletion removes files correctly
@@ -68,7 +68,7 @@ After updating `.env` and restarting:
 1. **Upload (`uploadToR2`)**: 
    - Uploads file to R2 bucket
    - Returns URL: `${R2_PUBLIC_URL}/${key}`
-   - With new config: `https://cdn.flavidairysolution.com/suppliers/123-image.jpg`
+   - With new config: `https://cdn.pakmondairysolution.com/suppliers/123-image.jpg`
 
 2. **Delete (`deleteFromR2`)**:
    - Extracts key from URL (handles both old and new domains)
@@ -84,14 +84,14 @@ After updating `.env` and restarting:
 
 The enhanced code handles:
 - Old R2 dev URLs: `https://pub-xxx.r2.dev/suppliers/...`
-- New custom domain: `https://cdn.flavidairysolution.com/suppliers/...`
+- New custom domain: `https://cdn.pakmondairysolution.com/suppliers/...`
 - Direct keys: `suppliers/123-image.jpg`
 
 All formats are automatically detected and handled correctly.
 
 ## 🚨 Important Notes
 
-1. **DNS Configuration**: Ensure `cdn.flavidairysolution.com` DNS is properly configured in Cloudflare
+1. **DNS Configuration**: Ensure `cdn.pakmondairysolution.com` DNS is properly configured in Cloudflare
 2. **SSL Certificate**: Verify SSL certificate is active for the custom domain
 3. **Bucket Access**: Ensure the R2 bucket has public access enabled for the custom domain
 4. **CORS**: If customer app accesses files directly, configure CORS in Cloudflare
@@ -107,10 +107,11 @@ All formats are automatically detected and handled correctly.
 ## 🎯 Result
 
 Once you update `R2_PUBLIC_URL` in your `.env` file and restart the application:
-- ✅ All new file uploads will use `cdn.flavidairysolution.com`
+- ✅ All new file uploads will use `cdn.pakmondairysolution.com`
 - ✅ All file operations (upload/delete/update) will work correctly
 - ✅ Existing files will continue to work (backward compatible)
 - ✅ Migration script available for updating existing URLs
 
 No code changes needed beyond what's already implemented - just update the environment variable!
+
 

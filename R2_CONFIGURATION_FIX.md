@@ -2,7 +2,7 @@
 
 ## 🚨 Issues Found:
 
-1. **Wrong bucket name**: Using `chat-flavi` instead of `chatbot-flavi`
+1. **Wrong bucket name**: Using `chat-pakmon` instead of `chatbot-pakmon`
 2. **R2_TOKEN not used**: You have an R2 token but code uses AWS S3 credentials
 3. **Authentication method**: Should use R2 token authentication
 
@@ -15,7 +15,7 @@ Update your `.env` file with these corrections:
 R2_ACCOUNT_ID="62823221dfff75d61e6a8dfc45ad4148"
 R2_ACCESS_KEY_ID="5fb2c769cfec25400b3c365cdeb1b408"
 R2_SECRET_ACCESS_KEY="cc8c44e2cac2680cf0ff65455ffeb025347a8eb5eb2a465b1f7dec0b945d32fc"
-R2_BUCKET_NAME="chatbot-flavi"  # CHANGED: was "chat-flavi"
+R2_BUCKET_NAME="chatbot-pakmon"  # CHANGED: was "chat-pakmon"
 R2_ENDPOINT="https://62823221dfff75d61e6a8dfc45ad4148.r2.cloudflarestorage.com"
 R2_PUBLIC_URL="https://pub-your-r2-public-domain.r2.dev"
 R2_TOKEN="27dcyWk2I58DvdVkZs_tJJYfVG_e4xhbVUmMq0fR"
@@ -47,14 +47,15 @@ const r2Client = new S3Client({
 
 ## 📋 Steps to Fix:
 
-1. **Update bucket name** in .env: `R2_BUCKET_NAME="chatbot-flavi"`
+1. **Update bucket name** in .env: `R2_BUCKET_NAME="chatbot-pakmon"`
 2. **Restart your server**: `npm run dev`
 3. **Test file upload** again
 
 ## 🎯 The Main Issue:
 
-The bucket name mismatch (`chat-flavi` vs `chatbot-flavi`) is causing the AccessDenied error because the code is trying to access the wrong bucket.
+The bucket name mismatch (`chat-pakmon` vs `chatbot-pakmon`) is causing the AccessDenied error because the code is trying to access the wrong bucket.
 
 ---
 
-**Quick Fix**: Just change `R2_BUCKET_NAME="chatbot-flavi"` in your .env file and restart the server.
+**Quick Fix**: Just change `R2_BUCKET_NAME="chatbot-pakmon"` in your .env file and restart the server.
+

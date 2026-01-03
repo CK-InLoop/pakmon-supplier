@@ -158,7 +158,8 @@ Files: ${product.pdfFiles.join(', ')}
       tags: product.tags,
       images: product.images,
       pdfFiles: product.pdfFiles,
-      context: `Product from Flavi Dairy Solutions supplier. Title: ${productTitle}`,
+      context: `Product from Pakmon Dairy Solutions supplier. Title: ${productTitle}`,
     },
   }));
 }
+

@@ -14,7 +14,7 @@ R2_PUBLIC_URL="https://pub-your-r2-public-domain.r2.dev"  # ❌ PLACEHOLDER
 
 # You need to:
 # 1. Go to Cloudflare Dashboard → R2 Object Storage
-# 2. Create a new R2 bucket or use existing "chat-flavi"
+# 2. Create a new R2 bucket or use existing "chat-pakmon"
 # 3. Go to "Manage R2 API tokens" → Create API token
 # 4. Set up a custom domain for public access
 # 5. Replace the values above with real credentials
@@ -59,7 +59,7 @@ openssl rand -base64 32
 1. **Login to Cloudflare Dashboard**
 2. **Go to R2 Object Storage**
 3. **Create/Configure your bucket:**
-   - Bucket name: `chat-flavi` (already configured)
+   - Bucket name: `chat-pakmon` (already configured)
    - Set up public access domain
 4. **Create API Token:**
    - Go to "Manage R2 API tokens"
@@ -74,7 +74,7 @@ openssl rand -base64 32
 ### Step 3: Set up Cloudflare AutoRAG
 1. **Go to Cloudflare Dashboard → AI → AutoRAG**
 2. **Create new AutoRAG index:**
-   - Name: `flavi-supplier-products`
+   - Name: `pakmon-supplier-products`
    - Model: Choose appropriate embedding model
 3. **Generate API Token:**
    - Go to "API Tokens"
@@ -82,7 +82,7 @@ openssl rand -base64 32
 4. **Update .env file:**
    ```env
    CLOUDFLARE_API_TOKEN="your-actual-api-token"
-   CLOUDFLARE_AUTORAG_INDEX="flavi-supplier-products"
+   CLOUDFLARE_AUTORAG_INDEX="pakmon-supplier-products"
    ```
 
 ## 🔍 Current Status
@@ -131,3 +131,4 @@ Before deploying to Vercel:
 - [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
 - [Cloudflare AutoRAG Documentation](https://developers.cloudflare.com/ai-search/)
 - [NextAuth.js Environment Variables](https://next-auth.js.org/configuration/options#environment-variables)
+

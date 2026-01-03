@@ -28,7 +28,7 @@ EMAIL_SERVER_HOST="smtp.gmail.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email@gmail.com"
 EMAIL_SERVER_PASSWORD="your-app-password"
-R2_BUCKET_NAME="chat-flavi"
+R2_BUCKET_NAME="chat-pakmon"
 # ... (fill in R2 and Cloudflare details)
 ```
 
@@ -111,7 +111,7 @@ src/
 | DATABASE_URL | mongodb://... | MongoDB connection |
 | NEXTAUTH_SECRET | abc123... | JWT signing key |
 | EMAIL_SERVER_HOST | smtp.gmail.com | SMTP server |
-| R2_BUCKET_NAME | chat-flavi | R2 bucket name |
+| R2_BUCKET_NAME | chat-pakmon | R2 bucket name |
 | CLOUDFLARE_API_TOKEN | xxx | AutoRAG access |
 
 ## 🐛 Common Issues & Fixes
@@ -227,4 +227,5 @@ For detailed information, see:
 - `README.md` - Full documentation
 - `SETUP.md` - Detailed setup guide
 - `PROJECT_OVERVIEW.md` - Architecture details
+
 

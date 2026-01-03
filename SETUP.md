@@ -1,4 +1,4 @@
-# Setup Guide - Flavi Dairy Solutions Supplier Portal
+# Setup Guide - Pakmon Dairy Solutions Supplier Portal
 
 This guide will help you set up the Supplier Portal from scratch.
 
@@ -17,7 +17,7 @@ Before starting, make sure you have:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd supplier-flav
+cd supplier-pakmon
 
 # Install dependencies
 npm install
@@ -63,11 +63,11 @@ mongodb://localhost:27017/supplier-portal
 
 1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com)
 2. Go to **R2** section
-3. Create a new bucket named `chat-flavi`
+3. Create a new bucket named `chat-pakmon`
 4. Go to **Manage R2 API Tokens**
 5. Create a new API token with:
    - Permissions: Object Read & Write
-   - Apply to specific buckets: `chat-flavi`
+   - Apply to specific buckets: `chat-pakmon`
 6. Save the **Access Key ID** and **Secret Access Key**
 
 ### AutoRAG Setup
@@ -125,13 +125,13 @@ EMAIL_SERVER_HOST="smtp.gmail.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email@gmail.com"
 EMAIL_SERVER_PASSWORD="your-app-password-here"
-EMAIL_FROM="noreply@flavidairysolution.com"
+EMAIL_FROM="noreply@pakmondairysolution.com"
 
 # Cloudflare R2
 R2_ACCOUNT_ID="your-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key"
 R2_SECRET_ACCESS_KEY="your-r2-secret-key"
-R2_BUCKET_NAME="chat-flavi"
+R2_BUCKET_NAME="chat-pakmon"
 R2_ENDPOINT="https://your-account-id.r2.cloudflarestorage.com"
 R2_PUBLIC_URL="https://pub-xxxxx.r2.dev"
 
@@ -280,4 +280,5 @@ For issues or questions:
 ---
 
 **Happy coding! 🚀**
+
 

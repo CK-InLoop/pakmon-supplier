@@ -96,7 +96,7 @@ export default function SignupPage() {
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">
             Create Your Account
           </h1>
-          <p className="text-gray-600 text-sm">Join Flavi Dairy Solutions</p>
+          <p className="text-gray-600 text-sm">Join Pakmon Dairy Solutions</p>
         </div>
 
         {error && (

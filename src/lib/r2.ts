@@ -29,7 +29,7 @@ export async function uploadToR2(
   try {
     await r2Client.send(
       new PutObjectCommand({
-        Bucket: "chatbot-flavi", // Using the correct bucket name directly
+        Bucket: "chatbot-pakmon", // Using the correct bucket name directly
         Key: key,
         Body: file,
         ContentType: contentType,
@@ -42,7 +42,7 @@ export async function uploadToR2(
     console.error('R2 Upload Error Details:', {
       code: error.Code || error.name,
       message: error.message,
-      bucket: "chatbot-flavi",
+      bucket: "chatbot-pakmon",
       endpoint: process.env.R2_ENDPOINT,
     });
 
@@ -51,15 +51,15 @@ export async function uploadToR2(
         'Access denied to R2 bucket. Please check: ' +
         '1) Your R2 API token has "Object Read & Write" permissions, ' +
         '2) The token is assigned to the correct bucket, ' +
-        '3) The bucket name is correct (current: "chatbot-flavi"). ' +
-        '4) Make sure you\'re using the right bucket name (chatbot-flavi vs chat-flavi). ' +
+        '3) The bucket name is correct (current: "chatbot-pakmon"). ' +
+        '4) Make sure you\'re using the right bucket name (chatbot-pakmon vs chat-pakmon). ' +
         'See R2_CONFIGURATION_FIX.md for detailed instructions.'
       );
     }
 
     if (error.Code === 'NoSuchBucket' || error.name === 'NoSuchBucket') {
       throw new Error(
-        `R2 bucket "chatbot-flavi" does not exist. ` +
+        `R2 bucket "chatbot-pakmon" does not exist. ` +
         'Please create the bucket in Cloudflare Dashboard or update R2_BUCKET_NAME in your .env file.'
       );
     }
@@ -103,7 +103,7 @@ export async function deleteFromR2(key: string): Promise<void> {
 
   await r2Client.send(
     new DeleteObjectCommand({
-      Bucket: "chatbot-flavi", // Using the correct bucket name directly
+      Bucket: "chatbot-pakmon", // Using the correct bucket name directly
       Key: actualKey,
     })
   );
@@ -111,7 +111,7 @@ export async function deleteFromR2(key: string): Promise<void> {
 
 export async function getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
   const command = new GetObjectCommand({
-    Bucket: "chatbot-flavi", // Using the correct bucket name directly
+    Bucket: "chatbot-pakmon", // Using the correct bucket name directly
     Key: key,
   });
 
@@ -203,4 +203,5 @@ export async function getPdfUrls(pdfUrls: string[], expiresIn: number = 3600): P
 }
 
 export { r2Client };
+
 

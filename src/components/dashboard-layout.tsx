@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
-import { 
-  LayoutDashboard, 
-  Package, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
-  Menu, 
-  X 
+import {
+  LayoutDashboard,
+  Package,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -43,16 +43,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 pro-sidebar shadow-xl transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 pro-sidebar shadow-xl transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Flavi Dairy
+                Pakmon Dairy
               </h1>
               <p className="text-xs text-gray-500 font-medium">Supplier Portal</p>
             </div>
@@ -82,9 +81,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   key={item.name}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`pro-sidebar-item flex items-center gap-3 ${
-                    isActive ? 'active' : ''
-                  }`}
+                  className={`pro-sidebar-item flex items-center gap-3 ${isActive ? 'active' : ''
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.name}</span>
@@ -117,7 +115,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <h1 className="text-lg font-bold text-gray-900">Flavi Dairy</h1>
+            <h1 className="text-lg font-bold text-gray-900">Pakmon Dairy</h1>
             <div className="w-6" /> {/* Spacer for alignment */}
           </div>
         </header>

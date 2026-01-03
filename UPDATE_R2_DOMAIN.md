@@ -13,7 +13,7 @@ R2_PUBLIC_URL="https://pub-your-r2-public-domain.r2.dev"
 
 **Replace with:**
 ```env
-R2_PUBLIC_URL="https://cdn.flavidairysolution.com"
+R2_PUBLIC_URL="https://cdn.pakmondairysolution.com"
 ```
 
 ### Complete R2 Configuration Section
@@ -25,9 +25,9 @@ Your R2 configuration section should look like this:
 R2_ACCOUNT_ID="62823221dfff75d61e6a8dfc45ad4148"
 R2_ACCESS_KEY_ID="your-access-key-id"
 R2_SECRET_ACCESS_KEY="your-secret-access-key"
-R2_BUCKET_NAME="chatbot-flavi"
+R2_BUCKET_NAME="chatbot-pakmon"
 R2_ENDPOINT="https://62823221dfff75d61e6a8dfc45ad4148.r2.cloudflarestorage.com"
-R2_PUBLIC_URL="https://cdn.flavidairysolution.com"
+R2_PUBLIC_URL="https://cdn.pakmondairysolution.com"
 ```
 
 ### Cloudflare AutoRAG Configuration (around line 19-26)
@@ -45,7 +45,7 @@ CLOUDFLARE_AUTORAG_INDEX="your-index-name"
 
 1. **Restart your application** (if running)
 2. **Test file upload** - Upload a new product with images
-3. **Verify URLs** - Check that new uploads use `cdn.flavidairysolution.com`
+3. **Verify URLs** - Check that new uploads use `cdn.pakmondairysolution.com`
 4. **Test file access** - Open an uploaded image URL in browser
 
 ## Verification
@@ -61,4 +61,5 @@ npm run migrate:r2-urls
 ```
 
 This will update all existing product image and PDF URLs to use the new domain.
+
 
