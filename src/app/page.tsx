@@ -24,12 +24,7 @@ export default async function Home() {
             >
               Login
             </Link>
-            <Link
-              href="/signup"
-              className="btn-primary text-xs md:text-sm px-4 md:px-6 py-2 md:py-3"
-            >
-              Sign Up
-            </Link>
+
           </div>
         </nav>
 
@@ -48,7 +43,7 @@ export default async function Home() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
-              href="/signup"
+              href="/login"
               className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 transform text-sm tracking-wide"
             >
               Get Started
@@ -60,7 +55,7 @@ export default async function Home() {
               href="/login"
               className="btn-secondary inline-flex items-center gap-2"
             >
-              Sign In
+              Log In
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>

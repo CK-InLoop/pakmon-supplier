@@ -130,7 +130,7 @@ function LoginContent() {
             disabled={loading}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? 'Logging In...' : 'Login'}
           </button>
 
           <div className="text-center mt-3">
@@ -143,7 +143,7 @@ function LoginContent() {
           </div>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
+        {/*<div className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link
             href="/signup"
@@ -153,12 +153,12 @@ function LoginContent() {
           </Link>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs text-blue-700">
             <strong>New to Pakmon Dairy?</strong> After signing up, you'll receive a verification email.
             Click the link to verify your account, then complete your profile before logging in.
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
