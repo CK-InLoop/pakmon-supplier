@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { uploadToR2 } from '@/lib/r2';
 import { createProductChunks, ingestToAutoRAG } from '@/lib/autorag';
+import { mockStore } from '@/lib/mock-store';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -124,12 +125,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // --- MOCK STORAGE (In-Memory) ---
-    const globalForMock = global as unknown as { mockProducts: any[] };
-    if (!globalForMock.mockProducts) {
-      globalForMock.mockProducts = [];
-    }
-
     const isDefaultUser = session?.user?.email === 'admin@example.com';
 
     // First, get the supplier profile for this user
@@ -223,7 +218,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback to mock
-    globalForMock.mockProducts.unshift(newProduct);
+    mockStore.products.unshift(newProduct);
     console.log('[Mock] Product created in memory:', newProduct.id);
 
     return NextResponse.json(

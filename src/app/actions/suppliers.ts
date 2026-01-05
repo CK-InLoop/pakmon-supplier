@@ -5,43 +5,7 @@ import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 
-// --- MOCK STORAGE (In-Memory) ---
-// We use globalThis to make it persist slightly better during dev server reloads,
-// though a full server restart will still wipe it.
-const globalForMock = global as unknown as { mockSuppliers: any[] };
-
-if (!globalForMock.mockSuppliers) {
-    globalForMock.mockSuppliers = [
-        {
-            id: 'mock-supplier-1',
-            userId: 'mock-user-1',
-            name: 'Demo Supplier',
-            companyName: 'Acme Corp',
-            email: 'demo@acme.com',
-            phone: '123-456-7890',
-            address: '123 Mock Lane',
-            status: 'APPROVED',
-            verified: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            _count: { products: 5 }
-        },
-        {
-            id: 'mock-supplier-2',
-            userId: 'mock-user-2',
-            name: 'Test Ind.',
-            companyName: 'Test Industries',
-            email: 'contact@testind.com',
-            phone: '987-654-3210',
-            address: '456 Test Blvd',
-            status: 'PENDING',
-            verified: false,
-            createdAt: new Date(Date.now() - 86400000), // Yesterday
-            updatedAt: new Date(),
-            _count: { products: 0 }
-        }
-    ];
-}
+import { mockStore } from '@/lib/mock-store';
 
 export async function createSupplier(data: {
     name: string;
@@ -73,7 +37,7 @@ export async function createSupplier(data: {
                 _count: { products: 0 }
             };
 
-            globalForMock.mockSuppliers.unshift(newSupplier); // Add to top
+            mockStore.suppliers.unshift(newSupplier); // Add to top
             revalidatePath('/dashboard/suppliers');
             return { success: true, supplier: newSupplier };
         }
@@ -147,7 +111,7 @@ export async function getSuppliers() {
         } catch (dbError) {
             console.warn('Database failed, falling back to mock data:', dbError);
             // If DB fails, return mock data
-            return { success: true, suppliers: globalForMock.mockSuppliers };
+            return { success: true, suppliers: mockStore.suppliers };
         }
     } catch (error) {
         console.error('Error fetching suppliers:', error);
