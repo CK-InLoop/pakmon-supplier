@@ -16,6 +16,21 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           throw new Error('Missing credentials');
         }
 
+        // HARDCODED DEFAULT USER (Bypass Database)
+        if (
+          credentials.email === 'admin@example.com' &&
+          credentials.password === 'password123'
+        ) {
+          return {
+            id: 'default-admin-id',
+            email: 'admin@example.com',
+            name: 'Default Admin',
+            role: 'ADMIN',
+            companyName: 'Default Supplier Co.',
+            verified: true,
+          };
+        }
+
         const user = await prisma.users.findUnique({
           where: { email: credentials.email as string },
           include: {
