@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
 
     // Fallback to mock
     mockStore.products.unshift(newProduct);
-    console.log('[Mock] Product created in memory:', newProduct.id);
+    console.log(`[Mock] Product created in memory for supplier: ${newProduct.supplierId}`, newProduct.id);
 
     return NextResponse.json(
       {

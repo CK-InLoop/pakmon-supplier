@@ -281,7 +281,7 @@ export default function AddProductPage() {
         throw new Error(data.error || `Server error (${response.status})`);
       }
 
-      router.push('/dashboard/products');
+      router.push(supplierId ? `/dashboard/products?supplierId=${supplierId}` : '/dashboard/products');
     } catch (err: any) {
       setError(err.message || 'An error occurred while creating the product');
     } finally {

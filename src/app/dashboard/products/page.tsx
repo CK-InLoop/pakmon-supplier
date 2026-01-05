@@ -371,7 +371,7 @@ export default function ProductsPage() {
             Add your first product to start appearing in AI-powered searches
           </p>
           <Link
-            href="/dashboard/products/add"
+            href={supplierId ? `/dashboard/products/add?supplierId=${supplierId}` : "/dashboard/products/add"}
             className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
           >
             <Plus className="w-5 h-5" />
@@ -532,7 +532,7 @@ export default function ProductsPage() {
                     )}
                   </button>
                   <Link
-                    href={`/dashboard/products/${product.id}/edit`}
+                    href={supplierId ? `/dashboard/products/${product.id}/edit?supplierId=${supplierId}` : `/dashboard/products/${product.id}/edit`}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
                   >
                     <Edit className="w-4 h-4" />

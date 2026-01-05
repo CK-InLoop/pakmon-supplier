@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { X, FileText, Image as ImageIcon } from 'lucide-react';
 
 interface Product {
@@ -21,7 +21,9 @@ interface Product {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
+  const supplierIdFromQuery = searchParams.get('supplierId');
 
   const [product, setProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -221,7 +223,8 @@ export default function EditProductPage() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      router.push('/dashboard/products');
+      const targetId = supplierIdFromQuery || (product as any)?.supplierId;
+      router.push(targetId ? `/dashboard/products?supplierId=${targetId}` : '/dashboard/products');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -254,7 +257,8 @@ export default function EditProductPage() {
         throw new Error(data.error || 'Failed to delete product');
       }
 
-      router.push('/dashboard/products');
+      const targetId = supplierIdFromQuery || (product as any)?.supplierId;
+      router.push(targetId ? `/dashboard/products?supplierId=${targetId}` : '/dashboard/products');
     } catch (err: any) {
       setDeleteError(err.message || 'Something went wrong while deleting.');
     } finally {
