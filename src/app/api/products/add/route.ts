@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadToR2 } from '@/lib/r2';
+import { uploadToAzure } from '@/lib/azure-storage';
 import { createProductChunks, ingestToAutoRAG } from '@/lib/autorag';
-import { mockStore } from '@/lib/mock-store';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -90,14 +89,13 @@ export async function POST(req: NextRequest) {
       if (image.size > 0) {
         try {
           const buffer = Buffer.from(await image.arrayBuffer());
-          const url = await uploadToR2(buffer, image.name, image.type, session.user.id, 'new');
+          const url = await uploadToAzure(buffer, image.name, image.type, session.user.id, 'new');
           imageUrls.push(url);
         } catch (error: any) {
-          console.error('Image upload error:', error);
+          console.error('Azure image upload error:', error);
           return NextResponse.json(
             {
-              error: 'Failed to upload image. ' + error.message,
-              details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
+              error: 'Failed to upload image to Azure. ' + error.message,
             },
             { status: 500 }
           );
@@ -111,14 +109,13 @@ export async function POST(req: NextRequest) {
       if (file.size > 0) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
-          const url = await uploadToR2(buffer, file.name, file.type, session.user.id, 'new');
+          const url = await uploadToAzure(buffer, file.name, file.type, session.user.id, 'new');
           fileUrls.push(url);
         } catch (error: any) {
-          console.error('File upload error:', error);
+          console.error('Azure file upload error:', error);
           return NextResponse.json(
             {
-              error: 'Failed to upload file. ' + error.message,
-              details: 'Please check your R2 configuration. See ENVIRONMENT_SETUP.md for instructions.'
+              error: 'Failed to upload file to Azure. ' + error.message,
             },
             { status: 500 }
           );
@@ -130,113 +127,70 @@ export async function POST(req: NextRequest) {
 
     // First, get the supplier profile for this user
     let supplier;
-    try {
-      if (providedSupplierId && isDefaultUser) {
-        supplier = { id: providedSupplierId, userId: session.user.id };
-      } else {
-        supplier = await prisma.suppliers.findUnique({
-          where: { userId: session.user.id },
-        });
-      }
-    } catch (dbError) {
-      console.warn('Database failed while looking up supplier, checking for mock session...');
-      if (isDefaultUser) {
-        supplier = { id: providedSupplierId || 'mock-supplier-1', userId: session.user.id };
-      }
+    if (providedSupplierId) {
+      // If supplierId is provided, we use it (useful for admins managing others)
+      supplier = await prisma.suppliers.findUnique({
+        where: { id: providedSupplierId },
+      });
+    } else {
+      // Find supplier linked to session user
+      supplier = await prisma.suppliers.findUnique({
+        where: { userId: session.user.id },
+      });
     }
 
-    if (!supplier && !isDefaultUser) {
+    if (!supplier) {
+      // Check if it's the mock admin and we have a mock ID we can use for DB lookups?
+      // Actually, if we're moving to REAL APIs, the user MUST have a supplier profile.
       return NextResponse.json(
         {
-          error: 'Supplier profile not found. Please complete onboarding first.',
+          error: 'Supplier profile not found. Please complete onboarding first or run the seed script.',
           redirect: '/onboarding'
         },
         { status: 404 }
       );
     }
 
-    // Create product object
-    const newProduct = {
-      id: `mock-product-${Date.now()}`,
-      supplierId: supplier?.id || providedSupplierId || 'mock-supplier-1',
-      name: title,
-      title,
-      shortDescription,
-      fullDescription,
-      description: shortDescription,
-      specifications: specifications || '',
-      images: imageUrls,
-      pdfFiles: fileUrls,
-      youtubeUrl: youtubeUrl || undefined,
-      priceRange: priceRange || undefined,
-      capacity: capacity || undefined,
-      category,
-      tags,
-      status: 'PENDING',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      viewCount: 0,
-      matchCount: 0,
-    };
+    // Create product in database
+    const product = await prisma.products.create({
+      data: {
+        supplierId: supplier.id,
+        name: title,
+        title,
+        shortDescription,
+        fullDescription,
+        description: shortDescription,
+        specifications,
+        images: imageUrls,
+        pdfFiles: fileUrls,
+        youtubeUrl: youtubeUrl || undefined,
+        priceRange: priceRange || undefined,
+        capacity: capacity || undefined,
+        category,
+        tags,
+        status: 'PENDING',
+      },
+    });
 
-    // Try real DB first if not default user
-    if (!isDefaultUser) {
-      try {
-        const product = await prisma.products.create({
-          data: {
-            supplierId: supplier!.id,
-            name: title,
-            title,
-            shortDescription,
-            fullDescription,
-            description: shortDescription,
-            specifications,
-            images: imageUrls,
-            pdfFiles: fileUrls,
-            youtubeUrl: youtubeUrl || undefined,
-            priceRange: priceRange || undefined,
-            capacity: capacity || undefined,
-            category,
-            tags,
-            status: 'PENDING',
-          },
-        });
-
-        // Create chunks and ingest to AutoRAG
-        try {
-          const chunks = await createProductChunks(product);
-          await ingestToAutoRAG(chunks);
-        } catch (error) {
-          console.error('AutoRAG ingestion error:', error);
-        }
-
-        return NextResponse.json(
-          {
-            message: 'Product created successfully',
-            product,
-          },
-          { status: 201 }
-        );
-      } catch (dbError) {
-        console.warn('Database failed while creating product, falling back to mock:', dbError);
-      }
+    // Create chunks and ingest to AutoRAG
+    try {
+      const chunks = await createProductChunks(product);
+      await ingestToAutoRAG(chunks);
+    } catch (error) {
+      console.error('AutoRAG ingestion error:', error);
     }
-
-    // Fallback to mock
-    mockStore.products.unshift(newProduct);
-    console.log(`[Mock] Product created in memory for supplier: ${newProduct.supplierId}`, newProduct.id);
 
     return NextResponse.json(
       {
-        message: 'Product created successfully (Mock)',
-        product: newProduct,
+        message: 'Product created successfully',
+        product,
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Add product error:', error);
     return NextResponse.json(
-      { error: 'An error occurred while creating the product' },
+      { error: error.message || 'An error occurred while creating the product' },
       { status: 500 }
     );
   }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { uploadToR2 } from '@/lib/r2';
+import { uploadToAzure } from '@/lib/azure-storage';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Log file details for debugging
-        console.log(`Uploading file: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
+        console.log(`Uploading file to Azure: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
 
         // Validate file type
         if (type === 'image' && !file.type.startsWith('image/')) {
@@ -103,26 +103,12 @@ export async function POST(req: NextRequest) {
         // Convert file to buffer before retry loop (avoid re-reading)
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        // Upload to R2 with retry logic
-        let url;
-        try {
-            url = await retryWithBackoff(
-                () => uploadToR2(buffer, file.name, file.type, session.user.id, 'new'),
-                3, // max 3 retries
-                1000 // 1 second initial delay
-            );
-        } catch (uploadError) {
-            console.warn('R2 Upload failed, falling back to mock URL:', uploadError);
-            // Return a public placeholder image or a temporary data URL
-            // For now, let's use a nice Unsplash placeholder related to dairy/machinery
-            const category = type === 'pdf' ? 'document' : 'machinery';
-            url = `https://images.unsplash.com/photo-1596733430284-f7437764b1a9?q=80&w=400&h=300&auto=format&fit=crop&bg=mock-${category}`;
-
-            // If it's a PDF, we'll just use a generic PDF icon URL
-            if (type === 'pdf') {
-                url = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf.pdf';
-            }
-        }
+        // Upload to Azure with retry logic
+        const url = await retryWithBackoff(
+            () => uploadToAzure(buffer, file.name, file.type, session.user.id, 'new'),
+            3, // max 3 retries
+            1000 // 1 second initial delay
+        );
 
         console.log(`Upload successful: ${file.name} -> ${url}`);
 

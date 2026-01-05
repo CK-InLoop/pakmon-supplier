@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getImageUrl, getPdfUrl, getImageUrls, getPdfUrls } from '@/lib/r2';
+import { getAzureSignedUrl } from '@/lib/azure-storage';
 
 export async function POST(req: NextRequest) {
   let type: string | undefined;
@@ -31,17 +31,12 @@ export async function POST(req: NextRequest) {
 
     let signedUrls: string[] = [];
 
-    if (type === 'images') {
+    // Azure Signed URLs: Append the SAS token to the blob URLs
+    if (type === 'images' || type === 'pdfs') {
       if (Array.isArray(urls)) {
-        signedUrls = await getImageUrls(urls, expiresIn);
+        signedUrls = urls.map(url => getAzureSignedUrl(url));
       } else {
-        signedUrls = [await getImageUrl(urls, expiresIn)];
-      }
-    } else if (type === 'pdfs') {
-      if (Array.isArray(urls)) {
-        signedUrls = await getPdfUrls(urls, expiresIn);
-      } else {
-        signedUrls = [await getPdfUrl(urls, expiresIn)];
+        signedUrls = [getAzureSignedUrl(urls)];
       }
     } else {
       return NextResponse.json(
@@ -56,14 +51,13 @@ export async function POST(req: NextRequest) {
       type
     });
 
-  } catch (error) {
-    console.warn('Signed URL generation failed, likely no R2 config. Returning original URLs as fallback:', error);
+  } catch (error: any) {
+    console.warn('Signed URL generation failed. Returning original URLs as fallback:', error.message);
     return NextResponse.json({
       signedUrls: Array.isArray(urls) ? urls : urls ? [urls] : [],
       expiresIn,
       type,
-      mocked: true
+      fallbacked: true
     });
   }
 }
-

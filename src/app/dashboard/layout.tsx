@@ -17,19 +17,18 @@ export default async function Layout({
   // Check if user has completed onboarding (has supplier profile)
   let supplier;
 
-  if (session.user.email === 'admin@example.com') {
-    // Mock supplier for default user
-    supplier = { id: 'mock-supplier-1', companyName: 'Acme Corp' };
-  } else {
-    try {
-      supplier = await prisma.suppliers.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true, companyName: true },
-      });
-    } catch (error) {
-      console.error('Database connection failed, but proceeding if default user logic was missed (should not happen for default user):', error);
-      // Fallback or re-throw, but for now we expect real users to need DB.
-      // If DB is down, real users can't login anyway because of auth.ts check.
+  try {
+    supplier = await prisma.suppliers.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, companyName: true },
+    });
+  } catch (error) {
+    console.error('Database connection failed while fetching supplier profile:', error);
+    // If we have a malformed ID (likely from a stale session/mock ID), 
+    // redirect to signout to force a session refresh.
+    if (error instanceof Error && (error.message.includes('Malformed ObjectID') || error.message.includes('default-admin-id'))) {
+      console.warn('Malformed ObjectID or mock ID detected in session. Forcing signout to clear stale cookies.');
+      redirect('/api/auth/signout');
     }
   }
 
