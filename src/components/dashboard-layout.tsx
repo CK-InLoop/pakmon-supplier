@@ -26,10 +26,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Package },
+  ];
+
+  const categories = [
+    {
+      name: 'Oil',
+      icon: Package,
+      subCategories: ['Lubricants', 'Engine Oil', 'Hydraulic Oil', 'Transformer Oil', 'Greases']
+    },
+    {
+      name: 'Dairy',
+      icon: Package,
+      subCategories: ['Fresh Milk', 'Butter & Cream', 'Cheese', 'Yogurt & Curd', 'Milk Powder']
+    },
+    {
+      name: 'Industrial',
+      icon: Package,
+      subCategories: ['Machinery', 'Power Tools', 'Safety Equipment', 'Raw Materials', 'Spare Parts']
+    },
+    {
+      name: 'Consulting',
+      icon: Package,
+      subCategories: ['Business Management', 'Technical Consulting', 'IT Consulting']
+    }
+  ];
+
+  const otherNav = [
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
+
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const toggleCategory = (name: string) => {
+    setExpandedCategory(expandedCategory === name ? null : name);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,8 +103,70 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`pro-sidebar-item flex items-center gap-3 ${isActive ? 'active' : ''
+                    }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              );
+            })}
+
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const isExpanded = expandedCategory === category.name;
+              return (
+                <div key={category.name} className="space-y-1">
+                  <button
+                    onClick={() => toggleCategory(category.name)}
+                    className={`pro-sidebar-item flex items-center justify-between w-full gap-3 ${isExpanded ? 'bg-gray-100' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{category.name}</span>
+                    </div>
+                    {isExpanded ? (
+                      <X className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <Menu className="w-4 h-4 text-gray-400 rotate-90" />
+                    )}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="pl-11 space-y-1">
+                      {category.subCategories.map((sub) => {
+                        const href = `/dashboard/suppliers?category=${encodeURIComponent(category.name)}&subCategory=${encodeURIComponent(sub)}`;
+                        const isActive = pathname === '/dashboard/suppliers' &&
+                          new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === category.name &&
+                          new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('subCategory') === sub;
+
+                        return (
+                          <Link
+                            key={sub}
+                            href={href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`block py-2 text-sm text-gray-600 hover:text-green-600 transition-colors ${isActive ? 'text-green-600 font-semibold' : ''}`}
+                          >
+                            {sub}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {otherNav.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (

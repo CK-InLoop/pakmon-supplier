@@ -35,7 +35,10 @@ export default function SuppliersPage() {
 
     const fetchSuppliers = async () => {
         try {
-            const result = await getSuppliers();
+            setLoading(true);
+            const category = searchParams.get('category') || undefined;
+            const subCategory = searchParams.get('subCategory') || undefined;
+            const result = await getSuppliers({ category, subCategory });
             if (result.success && result.suppliers) {
                 setSuppliers(result.suppliers as any);
             }
@@ -48,7 +51,7 @@ export default function SuppliersPage() {
 
     useEffect(() => {
         fetchSuppliers();
-    }, []);
+    }, [searchParams]);
 
     const filteredSuppliers = suppliers.filter(supplier =>
         supplier.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,8 +63,20 @@ export default function SuppliersPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Suppliers</h1>
-                    <p className="text-gray-600 mt-2">Manage your supplier network</p>
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        {searchParams.get('category') ? (
+                            <div className="flex items-center gap-2">
+                                <span>{searchParams.get('category')}</span>
+                                <span className="text-gray-400 text-2xl">/</span>
+                                <span className="text-green-600 font-semibold">{searchParams.get('subCategory') || 'All'}</span>
+                            </div>
+                        ) : 'All Suppliers'}
+                    </h1>
+                    <p className="text-gray-600 mt-2">
+                        {searchParams.get('subCategory')
+                            ? `Suppliers in ${searchParams.get('category')} > ${searchParams.get('subCategory')}`
+                            : 'Manage your supplier network'}
+                    </p>
                 </div>
                 <button
                     onClick={() => setIsSheetOpen(true)}

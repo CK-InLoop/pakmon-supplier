@@ -53,6 +53,9 @@ model suppliers {
   verified Boolean @default(false)
   status   String  @default("PENDING") // PENDING, APPROVED, REJECTED
 
+  category    String?
+  subCategory String?
+
   createdAt DateTime @default(now()) @db.Date
   updatedAt DateTime @updatedAt @db.Date
 

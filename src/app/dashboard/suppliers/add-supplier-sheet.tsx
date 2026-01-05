@@ -14,16 +14,30 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const categories = {
+        'Oil': ['Lubricants', 'Engine Oil', 'Hydraulic Oil', 'Transformer Oil', 'Greases'],
+        'Dairy': ['Fresh Milk', 'Butter & Cream', 'Cheese', 'Yogurt & Curd', 'Milk Powder'],
+        'Industrial': ['Machinery', 'Power Tools', 'Safety Equipment', 'Raw Materials', 'Spare Parts'],
+        'Consulting': ['Business Management', 'Technical Consulting', 'IT Consulting']
+    };
+
     const [formData, setFormData] = useState({
         name: '',
         companyName: '',
         email: '',
         phone: '',
         address: '',
+        category: '',
+        subCategory: '',
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        if (name === 'category') {
+            setFormData({ ...formData, category: value, subCategory: '' });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +48,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
         try {
             const result = await createSupplier(formData);
             if (result.success) {
-                setFormData({ name: '', companyName: '', email: '', phone: '', address: '' });
+                setFormData({ name: '', companyName: '', email: '', phone: '', address: '', category: '', subCategory: '' });
                 onSuccess();
                 onClose();
             } else {
@@ -144,6 +158,44 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                                                 placeholder="e.g. Pakmon Foods Pvt Ltd"
                                             />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Category <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    name="category"
+                                                    required
+                                                    value={formData.category}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
+                                                >
+                                                    <option value="">Select Category</option>
+                                                    {Object.keys(categories).map(cat => (
+                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Sub-category
+                                                </label>
+                                                <select
+                                                    name="subCategory"
+                                                    value={formData.subCategory}
+                                                    onChange={handleChange}
+                                                    disabled={!formData.category}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white disabled:bg-gray-50"
+                                                >
+                                                    <option value="">Select Sub-category</option>
+                                                    {formData.category && categories[formData.category as keyof typeof categories].map(sub => (
+                                                        <option key={sub} value={sub}>{sub}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <div>
