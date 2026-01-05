@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { mockStore } from '@/lib/mock-store';
 
 async function getAdminOverview() {
   const [
@@ -198,6 +199,36 @@ async function getSupplierAnalytics(userId: string) {
   };
 }
 
+async function getMockSupplierAnalytics() {
+  const products = mockStore.products;
+  const totalProducts = products.length;
+  const approvedProducts = products.filter(p => p.status === 'APPROVED').length;
+  const pendingProducts = products.filter(p => p.status === 'PENDING').length;
+  const rejectedProducts = products.filter(p => p.status === 'REJECTED').length;
+  const totalMatches = products.reduce((sum, p) => sum + (p.matchCount || p.recommendations || 0), 0);
+  const totalViews = products.reduce((sum, p) => sum + (p.viewCount || p.views || 0), 0);
+
+  return {
+    scope: 'supplier',
+    summary: {
+      totalProducts,
+      approvedProducts,
+      pendingProducts,
+      rejectedProducts,
+      totalMatches,
+      totalViews,
+    },
+    products: products.map(p => ({
+      id: p.id,
+      title: p.title || p.name,
+      matchCount: p.matchCount || p.recommendations || 0,
+      viewCount: p.viewCount || p.views || 0,
+      status: p.status,
+      createdAt: p.createdAt,
+    })),
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -217,16 +248,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(overview);
     }
 
-    const supplierAnalytics = await getSupplierAnalytics(session.user.id);
+    const isDefaultUser = session.user.email === 'admin@example.com';
+    let supplierAnalytics;
 
-    if ('status' in supplierAnalytics && supplierAnalytics.status === 404) {
-      return NextResponse.json(
-        {
-          error: supplierAnalytics.error,
-          redirect: supplierAnalytics.redirect,
-        },
-        { status: supplierAnalytics.status }
-      );
+    try {
+      supplierAnalytics = await getSupplierAnalytics(session.user.id);
+    } catch (error) {
+      console.warn('Database failed for analytics, trying mock fallback...');
+      if (isDefaultUser) {
+        supplierAnalytics = await getMockSupplierAnalytics();
+      } else {
+        throw error;
+      }
+    }
+
+    if (supplierAnalytics && 'status' in supplierAnalytics && supplierAnalytics.status === 404) {
+      if (isDefaultUser) {
+        supplierAnalytics = await getMockSupplierAnalytics();
+      } else {
+        return NextResponse.json(
+          {
+            error: supplierAnalytics.error,
+            redirect: supplierAnalytics.redirect,
+          },
+          { status: supplierAnalytics.status }
+        );
+      }
     }
 
     return NextResponse.json(supplierAnalytics);
