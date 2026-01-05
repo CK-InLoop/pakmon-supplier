@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Package, CheckCircle, Clock, TrendingUp, Building2 } from 'lucide-react';
 
 interface Stats {
   totalProducts: number;
@@ -116,15 +116,15 @@ export default function DashboardPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
-            href="/dashboard/products/add"
+            href="/dashboard/suppliers?add=true"
             className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-green-600 hover:bg-green-50 transition hover-lift"
           >
             <div className="bg-green-100 rounded-full p-2">
-              <Package className="w-5 h-5 text-green-600" />
+              <Building2 className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900">Add Product</p>
-              <p className="text-sm text-gray-600">Upload a new product</p>
+              <p className="font-semibold text-gray-900">Add Supplier</p>
+              <p className="text-sm text-gray-600">Register a new supplier</p>
             </div>
           </Link>
 

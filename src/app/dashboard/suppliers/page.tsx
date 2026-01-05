@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { getSuppliers } from '@/app/actions/suppliers';
 import { AddSupplierSheet } from './add-supplier-sheet';
 
@@ -24,6 +25,13 @@ export default function SuppliersPage() {
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setIsSheetOpen(true);
+        }
+    }, [searchParams]);
 
     const fetchSuppliers = async () => {
         try {
