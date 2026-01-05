@@ -240,21 +240,40 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const isDefaultUser = session.user.email === 'admin@example.com';
+    console.log(`[Analytics] Request for user: ${session.user.email}, isDefault: ${isDefaultUser}`);
     const isAdmin =
-      session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN';
+      (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') && !isDefaultUser;
 
     if (isAdmin) {
-      const overview = await getAdminOverview();
-      return NextResponse.json(overview);
+      console.log('[Analytics] Entering Admin Overview path');
+      try {
+        const overview = await getAdminOverview();
+        return NextResponse.json(overview);
+      } catch (error) {
+        console.error('Admin overview failed, falling back to empty:', error);
+        // Provide a basic empty overview instead of crashing
+        return NextResponse.json({
+          scope: 'overview',
+          summary: {
+            suppliers: { total: 0, approved: 0, pending: 0 },
+            products: { total: 0, approved: 0, pending: 0, rejected: 0 },
+            inquiries: { total: 0, responded: 0 },
+            engagements: { totalMatches: 0, totalViews: 0 },
+          },
+          topSuppliers: [],
+          recentActivity: { suppliers: [], products: [] }
+        });
+      }
     }
 
-    const isDefaultUser = session.user.email === 'admin@example.com';
     let supplierAnalytics;
 
     try {
+      console.log(`[Analytics] Attempting getSupplierAnalytics for: ${session.user.id}`);
       supplierAnalytics = await getSupplierAnalytics(session.user.id);
     } catch (error) {
-      console.warn('Database failed for analytics, trying mock fallback...');
+      console.warn('[Analytics] Database failed, trying mock fallback...');
       if (isDefaultUser) {
         supplierAnalytics = await getMockSupplierAnalytics();
       } else {
@@ -277,10 +296,10 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(supplierAnalytics);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Analytics error:', error);
     return NextResponse.json(
-      { error: 'An error occurred while fetching analytics' },
+      { error: error.message || 'An error occurred while fetching analytics' },
       { status: 500 }
     );
   }

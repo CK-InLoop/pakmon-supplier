@@ -71,10 +71,10 @@ export async function GET(req: NextRequest) {
 
 
     return NextResponse.json({ supplier });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get profile error:', error);
     return NextResponse.json(
-      { error: 'An error occurred while fetching profile' },
+      { error: error.message || 'An error occurred while fetching profile' },
       { status: 500 }
     );
   }
@@ -140,10 +140,10 @@ export async function PATCH(req: NextRequest) {
       message: 'Profile updated successfully',
       supplier: updatedSupplier,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update profile error:', error);
     return NextResponse.json(
-      { error: 'An error occurred while updating profile' },
+      { error: error.message || 'An error occurred while updating profile' },
       { status: 500 }
     );
   }
