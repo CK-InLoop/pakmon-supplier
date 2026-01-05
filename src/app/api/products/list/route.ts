@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     if (!targetSupplierId) {
       if (isDefaultUser) {
-        targetSupplierId = 'default-supplier-id';
+        targetSupplierId = 'mock-supplier-1';
       } else {
         // First, get the supplier profile for this user
         try {
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
           console.warn('Database failed while looking up supplier for product list:', dbError);
           // Fallback for default user or return error
           if (isDefaultUser) {
-            targetSupplierId = 'default-supplier-id';
+            targetSupplierId = 'mock-supplier-1';
           } else {
             return NextResponse.json(
               { error: 'Database connection failed. Please ensure MongoDB is running.' },
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      // Filter in-memory products for this supplier too
+      // Filter in-memory products for this supplier strictly
       const mockProducts = mockStore.products.filter(p => p.supplierId === targetSupplierId);
       const mergedProducts = [...products, ...mockProducts];
 
@@ -90,7 +90,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ products: mergedProducts });
     } catch (dbError) {
       console.warn('Database failed while fetching products, returning mock data:', dbError);
-      const supplierProducts = mockStore.products.filter(p => p.supplierId === targetSupplierId || (isDefaultUser && p.supplierId === 'default-supplier-id'));
+      // Strictly filter mock products for this supplier
+      const supplierProducts = mockStore.products.filter(p => p.supplierId === targetSupplierId);
       return NextResponse.json({ products: supplierProducts });
     }
   } catch (error) {

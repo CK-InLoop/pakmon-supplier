@@ -19,7 +19,7 @@ export default async function Layout({
 
   if (session.user.email === 'admin@example.com') {
     // Mock supplier for default user
-    supplier = { id: 'default-supplier-id', companyName: 'Default Supplier Co.' };
+    supplier = { id: 'mock-supplier-1', companyName: 'Acme Corp' };
   } else {
     try {
       supplier = await prisma.suppliers.findUnique({

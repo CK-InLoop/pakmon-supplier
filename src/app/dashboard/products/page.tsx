@@ -67,7 +67,8 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products/list');
+      const url = supplierId ? `/api/products/list?supplierId=${supplierId}` : '/api/products/list';
+      const response = await fetch(url);
 
       // Check response status before parsing
       if (!response.ok) {
@@ -336,7 +337,7 @@ export default function ProductsPage() {
           <p className="text-gray-600 mt-2">Manage your product catalog</p>
         </div>
         <Link
-          href="/dashboard/products/add"
+          href={supplierId ? `/dashboard/products/add?supplierId=${supplierId}` : "/dashboard/products/add"}
           className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
         >
           <Plus className="w-5 h-5" />

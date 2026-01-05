@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
     const priceRange = formData.get('priceRange') as string | null;
     const capacity = formData.get('capacity') as string | null;
     const youtubeUrl = formData.get('youtubeUrl') as string | null;
+    const providedSupplierId = formData.get('supplierId') as string | null;
 
     // Validation
     if (!title || !shortDescription || !fullDescription) {
@@ -130,13 +131,17 @@ export async function POST(req: NextRequest) {
     // First, get the supplier profile for this user
     let supplier;
     try {
-      supplier = await prisma.suppliers.findUnique({
-        where: { userId: session.user.id },
-      });
+      if (providedSupplierId && isDefaultUser) {
+        supplier = { id: providedSupplierId, userId: session.user.id };
+      } else {
+        supplier = await prisma.suppliers.findUnique({
+          where: { userId: session.user.id },
+        });
+      }
     } catch (dbError) {
       console.warn('Database failed while looking up supplier, checking for mock session...');
       if (isDefaultUser) {
-        supplier = { id: 'default-supplier-id', userId: session.user.id };
+        supplier = { id: providedSupplierId || 'mock-supplier-1', userId: session.user.id };
       }
     }
 
@@ -153,7 +158,7 @@ export async function POST(req: NextRequest) {
     // Create product object
     const newProduct = {
       id: `mock-product-${Date.now()}`,
-      supplierId: supplier?.id || 'default-supplier-id',
+      supplierId: supplier?.id || providedSupplierId || 'mock-supplier-1',
       name: title,
       title,
       shortDescription,

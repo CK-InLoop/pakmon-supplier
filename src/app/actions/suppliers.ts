@@ -97,9 +97,12 @@ export async function createSupplier(data: {
 
 export async function getSuppliers() {
     try {
-        // Try real DB first
+        const session = await auth();
+        const isDefaultUser = session?.user?.email === 'admin@example.com';
+
+        let dbSuppliers: any[] = [];
         try {
-            const suppliers = await prisma.suppliers.findMany({
+            dbSuppliers = await prisma.suppliers.findMany({
                 orderBy: { createdAt: 'desc' },
                 include: {
                     _count: {
@@ -107,12 +110,38 @@ export async function getSuppliers() {
                     }
                 }
             });
-            return { success: true, suppliers };
         } catch (dbError) {
-            console.warn('Database failed, falling back to mock data:', dbError);
-            // If DB fails, return mock data
-            return { success: true, suppliers: mockStore.suppliers };
+            console.warn('Database failed while fetching suppliers:', dbError);
         }
+
+        // If not default user and DB succeeded/failed, handle accordingly
+        if (!isDefaultUser) {
+            if (dbSuppliers.length > 0) return { success: true, suppliers: dbSuppliers };
+            // If DB failed (length 0 due to catch) or is just empty, return what we have
+            return { success: true, suppliers: dbSuppliers };
+        }
+
+        // For Default User (Admin), always merge with mock data
+        // Calculate dynamic product counts for mock suppliers
+        const enrichedMockSuppliers = mockStore.suppliers.map(s => ({
+            ...s,
+            _count: {
+                products: mockStore.products.filter(p => p.supplierId === s.id).length
+            }
+        }));
+
+        // Combine DB and Mock, avoiding duplicates if any (by ID)
+        const combined = [...dbSuppliers];
+        enrichedMockSuppliers.forEach(ms => {
+            if (!combined.find(ds => ds.id === ms.id)) {
+                combined.push(ms);
+            }
+        });
+
+        // Sort by createdAt desc
+        combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return { success: true, suppliers: combined };
     } catch (error) {
         console.error('Error fetching suppliers:', error);
         return { success: false, error: 'Failed to fetch suppliers.' };

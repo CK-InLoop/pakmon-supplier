@@ -129,15 +129,15 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/dashboard/products"
+            href="/dashboard/suppliers"
             className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-green-600 hover:bg-green-50 transition hover-lift"
           >
             <div className="bg-gray-100 rounded-full p-2">
               <Package className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900">View Products</p>
-              <p className="text-sm text-gray-600">Manage your products</p>
+              <p className="font-semibold text-gray-900">View Suppliers</p>
+              <p className="text-sm text-gray-600">Manage your suppliers</p>
             </div>
           </Link>
 

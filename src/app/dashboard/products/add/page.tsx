@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface UploadedFile {
@@ -14,6 +14,9 @@ interface UploadedFile {
 
 export default function AddProductPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const supplierId = searchParams.get('supplierId');
+
   const [formData, setFormData] = useState({
     title: '',
     shortDescription: '',
@@ -239,6 +242,10 @@ export default function AddProductPage() {
       formDataToSend.append('priceRange', formData.priceRange);
       formDataToSend.append('capacity', formData.capacity);
       formDataToSend.append('youtubeUrl', formData.youtubeUrl);
+
+      if (supplierId) {
+        formDataToSend.append('supplierId', supplierId);
+      }
 
       // Send already-uploaded URLs
       const imageUrls = images.filter(img => img.url).map(img => img.url!);
