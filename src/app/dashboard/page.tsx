@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link href="/dashboard/products" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">
@@ -64,9 +64,9 @@ export default function DashboardPage() {
               <Package className="w-6 h-6 text-green-600" />
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link href="/dashboard/products?status=APPROVED" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Approved</p>
@@ -78,9 +78,9 @@ export default function DashboardPage() {
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link href="/dashboard/products?status=PENDING" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending</p>
@@ -92,9 +92,9 @@ export default function DashboardPage() {
               <Clock className="w-6 h-6 text-yellow-600" />
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link href="/dashboard/products?hasMatches=true" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">
@@ -108,7 +108,7 @@ export default function DashboardPage() {
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Quick Actions */}

@@ -29,20 +29,20 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get('supplierId');
+    const status = searchParams.get('status');
+    const hasMatches = searchParams.get('hasMatches') === 'true';
 
     const where: any = {};
     if (supplierId) {
       where.supplierId = supplierId;
-    } else if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
-      // For non-admins, default to their own products if no supplierId is specified
-      const supplier = await prisma.suppliers.findUnique({
-        where: { userId: session.user.id },
-      });
+    }
 
-      if (!supplier) {
-        return NextResponse.json({ products: [] });
-      }
-      where.supplierId = supplier.id;
+    // Apply additional filters
+    if (status) {
+      where.status = status.toUpperCase();
+    }
+    if (hasMatches) {
+      where.matchCount = { gt: 0 };
     }
 
     const products = await prisma.products.findMany({

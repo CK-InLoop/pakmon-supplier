@@ -37,7 +37,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [supplierId]);
+  }, [searchParams, supplierId]);
 
   // Helper function to validate URLs
   const isValidUrl = (url: string | null | undefined): boolean => {
@@ -67,7 +67,13 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const url = supplierId ? `/api/products/list?supplierId=${supplierId}` : '/api/products/list';
+      const status = searchParams.get('status');
+      const hasMatches = searchParams.get('hasMatches');
+
+      let url = supplierId ? `/api/products/list?supplierId=${supplierId}` : '/api/products/list';
+      if (status) url += `${url.includes('?') ? '&' : '?'}status=${status}`;
+      if (hasMatches) url += `${url.includes('?') ? '&' : '?'}hasMatches=${hasMatches}`;
+
       const response = await fetch(url);
 
       // Check response status before parsing

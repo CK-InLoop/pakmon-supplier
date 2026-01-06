@@ -139,15 +139,32 @@ async function getSupplierAnalytics(userId: string) {
     where: { userId },
   });
 
+  // Get global counts for the dashboard cards
+  const [
+    globalTotalProducts,
+    globalApprovedProducts,
+    globalPendingProducts,
+    globalRejectedProducts,
+    globalTotalMatches
+  ] = await Promise.all([
+    prisma.products.count(),
+    prisma.products.count({ where: { status: 'APPROVED' } }),
+    prisma.products.count({ where: { status: 'PENDING' } }),
+    prisma.products.count({ where: { status: 'REJECTED' } }),
+    prisma.products.aggregate({
+      _sum: { recommendations: true },
+    }).then(res => res._sum.recommendations ?? 0),
+  ]);
+
   if (!supplier) {
     return {
       scope: 'supplier',
       summary: {
-        totalProducts: 0,
-        approvedProducts: 0,
-        pendingProducts: 0,
-        rejectedProducts: 0,
-        totalMatches: 0,
+        totalProducts: globalTotalProducts,
+        approvedProducts: globalApprovedProducts,
+        pendingProducts: globalPendingProducts,
+        rejectedProducts: globalRejectedProducts,
+        totalMatches: globalTotalMatches,
         totalViews: 0,
       },
       products: [],
@@ -171,27 +188,16 @@ async function getSupplierAnalytics(userId: string) {
     },
   });
 
-  const totalProducts = products.length;
-  const approvedProducts = products.filter(
-    (p) => p.status === 'APPROVED'
-  ).length;
-  const pendingProducts = products.filter(
-    (p) => p.status === 'PENDING'
-  ).length;
-  const rejectedProducts = products.filter(
-    (p) => p.status === 'REJECTED'
-  ).length;
-  const totalMatches = products.reduce((sum, p) => sum + (p.recommendations || 0), 0);
   const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
 
   return {
     scope: 'supplier',
     summary: {
-      totalProducts,
-      approvedProducts,
-      pendingProducts,
-      rejectedProducts,
-      totalMatches,
+      totalProducts: globalTotalProducts,
+      approvedProducts: globalApprovedProducts,
+      pendingProducts: globalPendingProducts,
+      rejectedProducts: globalRejectedProducts,
+      totalMatches: globalTotalMatches,
       totalViews,
     },
     products: products.map(p => ({
