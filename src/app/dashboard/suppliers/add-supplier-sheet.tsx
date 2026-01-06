@@ -15,10 +15,50 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
     const [error, setError] = useState('');
 
     const categories = {
-        'Oil': ['Lubricants', 'Engine Oil', 'Hydraulic Oil', 'Transformer Oil', 'Greases'],
-        'Dairy': ['Fresh Milk', 'Butter & Cream', 'Cheese', 'Yogurt & Curd', 'Milk Powder'],
-        'Industrial': ['Machinery', 'Power Tools', 'Safety Equipment', 'Raw Materials', 'Spare Parts'],
-        'Consulting': ['Business Management', 'Technical Consulting', 'IT Consulting']
+        'Oil': [
+            'NG Factory Pipelines and SKIDS Installation',
+            'LNG STORAGE TANKS AND SYSTEM INSTALLATION',
+            'NITROGEN & OXYGEN GENERATORS'
+        ],
+        'Dairy': [
+            'Dairy plants',
+            'Water treatment plants',
+            'CIP Plants',
+            'Pilot plant/Mini plant',
+            'Factory relocation',
+            'SS storage tanks & mixers',
+            'Cleaning stations',
+            'IBC Dosing Stations',
+            'Platforms',
+            'SS pipings'
+        ],
+        'Industrial': [
+            'Home and persona care plants',
+            'Sulphonation plant',
+            'Lab plant',
+            'Tank farms',
+            'Utility & pipings'
+        ],
+        'Consulting': [
+            'AMC Contracts',
+            'Fan Balance and Monitoring',
+            'Thermal Inspections',
+            'Vibration Checks',
+            'Central Lubrication System',
+            'Tightening Checks',
+            '6S Trainings',
+            'TPM (Total Productive Maintenance)',
+            'Focused Improvements',
+            'Autonomous Maintenance',
+            'Planned Maintenance',
+            'Energy Savings Risk Assessment',
+            'Cost Reductions',
+            'Early Equipment Management',
+            'HSE Risk Assessments and Predictions',
+            'Efficiency Monitoring – FOL',
+            'Low Cost Automations',
+            'Supply Chain – Raw Materials'
+        ]
     };
 
     const [formData, setFormData] = useState({
@@ -181,10 +221,11 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Sub-category
+                                                    Sub-category <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     name="subCategory"
+                                                    required
                                                     value={formData.subCategory}
                                                     onChange={handleChange}
                                                     disabled={!formData.category}

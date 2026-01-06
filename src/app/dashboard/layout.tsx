@@ -16,6 +16,7 @@ export default async function Layout({
 
   // Check if user has completed onboarding (has supplier profile)
   let supplier;
+  const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN';
 
   try {
     supplier = await prisma.suppliers.findUnique({
@@ -32,11 +33,8 @@ export default async function Layout({
     }
   }
 
-  // If no supplier profile exists, redirect to onboarding
-  if (!supplier) {
-    redirect('/onboarding');
-  }
-
+  // Dashboard layout should be accessible even if no supplier profile exists yet
+  // Redirection to onboarding has been removed as per user request
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 

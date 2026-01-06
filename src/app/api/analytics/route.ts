@@ -141,9 +141,16 @@ async function getSupplierAnalytics(userId: string) {
 
   if (!supplier) {
     return {
-      error: 'Supplier profile not found. Please complete onboarding first.',
-      redirect: '/onboarding',
-      status: 404,
+      scope: 'supplier',
+      summary: {
+        totalProducts: 0,
+        approvedProducts: 0,
+        pendingProducts: 0,
+        rejectedProducts: 0,
+        totalMatches: 0,
+        totalViews: 0,
+      },
+      products: [],
     };
   }
 

@@ -84,11 +84,7 @@ export default function ProductsPage() {
           errorData = { error: `Failed to fetch products: ${response.status} ${response.statusText}` };
         }
 
-        // Check if redirect is needed (e.g., onboarding not completed)
-        if (errorData.redirect) {
-          window.location.href = errorData.redirect;
-          return;
-        }
+        // Redirection to onboarding has been disabled
         throw new Error(errorData.error || 'Failed to fetch products');
       }
 
@@ -255,11 +251,7 @@ export default function ProductsPage() {
       }
 
       if (!response.ok) {
-        // Check if redirect is needed (e.g., onboarding not completed)
-        if (data.redirect) {
-          window.location.href = data.redirect;
-          return;
-        }
+        // Redirection to onboarding has been disabled
         throw new Error(data.error || `Failed to delete product: ${response.status} ${response.statusText}`);
       }
 

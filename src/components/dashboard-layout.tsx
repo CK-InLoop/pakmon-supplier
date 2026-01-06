@@ -32,22 +32,62 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       name: 'Oil',
       icon: Package,
-      subCategories: ['Lubricants', 'Engine Oil', 'Hydraulic Oil', 'Transformer Oil', 'Greases']
+      subCategories: [
+        'NG Factory Pipelines and SKIDS Installation',
+        'LNG STORAGE TANKS AND SYSTEM INSTALLATION',
+        'NITROGEN & OXYGEN GENERATORS'
+      ]
     },
     {
       name: 'Dairy',
       icon: Package,
-      subCategories: ['Fresh Milk', 'Butter & Cream', 'Cheese', 'Yogurt & Curd', 'Milk Powder']
+      subCategories: [
+        'Dairy plants',
+        'Water treatment plants',
+        'CIP Plants',
+        'Pilot plant/Mini plant',
+        'Factory relocation',
+        'SS storage tanks & mixers',
+        'Cleaning stations',
+        'IBC Dosing Stations',
+        'Platforms',
+        'SS pipings'
+      ]
     },
     {
       name: 'Industrial',
       icon: Package,
-      subCategories: ['Machinery', 'Power Tools', 'Safety Equipment', 'Raw Materials', 'Spare Parts']
+      subCategories: [
+        'Home and persona care plants',
+        'Sulphonation plant',
+        'Lab plant',
+        'Tank farms',
+        'Utility & pipings'
+      ]
     },
     {
       name: 'Consulting',
       icon: Package,
-      subCategories: ['Business Management', 'Technical Consulting', 'IT Consulting']
+      subCategories: [
+        'AMC Contracts',
+        'Fan Balance and Monitoring',
+        'Thermal Inspections',
+        'Vibration Checks',
+        'Central Lubrication System',
+        'Tightening Checks',
+        '6S Trainings',
+        'TPM (Total Productive Maintenance)',
+        'Focused Improvements',
+        'Autonomous Maintenance',
+        'Planned Maintenance',
+        'Energy Savings Risk Assessment',
+        'Cost Reductions',
+        'Early Equipment Management',
+        'HSE Risk Assessments and Predictions',
+        'Efficiency Monitoring – FOL',
+        'Low Cost Automations',
+        'Supply Chain – Raw Materials'
+      ]
     }
   ];
 
