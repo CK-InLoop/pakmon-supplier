@@ -34,23 +34,8 @@ export async function GET(
 
     const { id } = await params;
 
-    // First, get the supplier profile for this user
-    const supplier = await prisma.suppliers.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!supplier) {
-      return NextResponse.json(
-        { error: 'Supplier profile not found' },
-        { status: 404 }
-      );
-    }
-
-    const product = await prisma.products.findFirst({
-      where: {
-        id,
-        supplierId: supplier.id,
-      },
+    const product = await prisma.products.findUnique({
+      where: { id },
     });
 
     if (!product) {
@@ -94,22 +79,8 @@ export async function PATCH(
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
     const youtubeUrl = formData.get('youtubeUrl') as string | null;
 
-    const supplier = await prisma.suppliers.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!supplier) {
-      return NextResponse.json(
-        { error: 'Supplier profile not found' },
-        { status: 404 }
-      );
-    }
-
-    const existingProduct = await prisma.products.findFirst({
-      where: {
-        id,
-        supplierId: supplier.id,
-      },
+    const existingProduct = await prisma.products.findUnique({
+      where: { id },
     });
 
     if (!existingProduct) {
@@ -195,22 +166,8 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const supplier = await prisma.suppliers.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!supplier) {
-      return NextResponse.json(
-        { error: 'Supplier profile not found' },
-        { status: 404 }
-      );
-    }
-
-    const product = await prisma.products.findFirst({
-      where: {
-        id,
-        supplierId: supplier.id,
-      },
+    const product = await prisma.products.findUnique({
+      where: { id },
     });
 
     if (!product) {

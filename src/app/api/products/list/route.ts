@@ -30,10 +30,11 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get('supplierId');
 
-    let targetSupplierId = supplierId;
-
-    if (!targetSupplierId) {
-      // Get the supplier profile for this user
+    const where: any = {};
+    if (supplierId) {
+      where.supplierId = supplierId;
+    } else if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+      // For non-admins, default to their own products if no supplierId is specified
       const supplier = await prisma.suppliers.findUnique({
         where: { userId: session.user.id },
       });
@@ -41,13 +42,11 @@ export async function GET(req: NextRequest) {
       if (!supplier) {
         return NextResponse.json({ products: [] });
       }
-      targetSupplierId = supplier.id;
+      where.supplierId = supplier.id;
     }
 
     const products = await prisma.products.findMany({
-      where: {
-        supplierId: targetSupplierId,
-      },
+      where,
       orderBy: {
         createdAt: 'desc',
       },
