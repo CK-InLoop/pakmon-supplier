@@ -14,6 +14,8 @@ interface Supplier {
     email?: string;
     phone?: string;
     address?: string;
+    category?: string;
+    subCategory?: string;
     status: string;
     _count: {
         products: number;
@@ -143,6 +145,20 @@ export default function SuppliersPage() {
                                 <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
                                     {supplier.companyName || supplier.name}
                                 </h3>
+                                {(supplier.category || supplier.subCategory) && (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {supplier.category && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                                {supplier.category}
+                                            </span>
+                                        )}
+                                        {supplier.subCategory && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                                                {supplier.subCategory}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                                 <p className="text-sm text-gray-500 mb-4">{supplier.name}</p>
 
                                 <div className="space-y-2 text-sm text-gray-600 mb-6">
