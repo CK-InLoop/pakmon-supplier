@@ -145,7 +145,8 @@ async function getSupplierAnalytics(userId: string) {
     globalApprovedProducts,
     globalPendingProducts,
     globalRejectedProducts,
-    globalTotalMatches
+    globalTotalMatches,
+    globalTotalSuppliers
   ] = await Promise.all([
     prisma.products.count(),
     prisma.products.count({ where: { status: 'APPROVED' } }),
@@ -154,6 +155,7 @@ async function getSupplierAnalytics(userId: string) {
     prisma.products.aggregate({
       _sum: { recommendations: true },
     }).then(res => res._sum.recommendations ?? 0),
+    prisma.suppliers.count(),
   ]);
 
   if (!supplier) {
@@ -194,6 +196,7 @@ async function getSupplierAnalytics(userId: string) {
     scope: 'supplier',
     summary: {
       totalProducts: globalTotalProducts,
+      totalSuppliers: globalTotalSuppliers,
       approvedProducts: globalApprovedProducts,
       pendingProducts: globalPendingProducts,
       rejectedProducts: globalRejectedProducts,

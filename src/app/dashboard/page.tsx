@@ -6,6 +6,7 @@ import { Package, CheckCircle, Clock, TrendingUp, Building2 } from 'lucide-react
 
 interface Stats {
   totalProducts: number;
+  totalSuppliers: number;
   approvedProducts: number;
   pendingProducts: number;
   totalMatches: number;
@@ -62,6 +63,22 @@ export default function DashboardPage() {
             </div>
             <div className="bg-green-100 rounded-full p-3">
               <Package className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/dashboard/suppliers" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Total Suppliers
+              </p>
+              <p className="text-3xl font-bold text-indigo-600 mt-2">
+                {stats?.totalSuppliers || 0}
+              </p>
+            </div>
+            <div className="bg-indigo-100 rounded-full p-3">
+              <Building2 className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
         </Link>
