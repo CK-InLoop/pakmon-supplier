@@ -66,7 +66,6 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/products?status=APPROVED" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Approved</p>
@@ -108,6 +107,18 @@ export default function DashboardPage() {
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
           </div>
+        {/*
+          Removed Approved, Pending, and Total Matches UI as per 2026-01-07 request. Restore if needed.
+          <Link href="/dashboard/products?status=APPROVED" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+            ...approved products card...
+          </Link>
+          <Link href="/dashboard/products?status=PENDING" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+            ...pending products card...
+          </Link>
+          <Link href="/dashboard/products?hasMatches=true" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+            ...total matches card...
+          </Link>
+        */}
         </Link>
       </div>
 

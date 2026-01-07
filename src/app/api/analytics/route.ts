@@ -19,10 +19,11 @@ async function getAdminOverview() {
     recentProducts,
   ] = await Promise.all([
     prisma.suppliers.count(),
-    prisma.suppliers.count({ where: { status: 'APPROVED' } }),
-    prisma.suppliers.count({ where: { status: 'PENDING' } }),
-    prisma.products.count(),
-    prisma.products.count({ where: { status: 'APPROVED' } }),
+        // Removed approved/pending counts as per 2026-01-07 request. Restore if needed.
+        // prisma.suppliers.count({ where: { status: 'APPROVED' } }),
+        // prisma.suppliers.count({ where: { status: 'PENDING' } }),
+        // prisma.products.count({ where: { status: 'APPROVED' } }),
+        // prisma.products.count({ where: { status: 'PENDING' } }),
     prisma.products.count({ where: { status: 'PENDING' } }),
     prisma.products.count({ where: { status: 'REJECTED' } }),
     prisma.inquiries.count(),
@@ -95,9 +96,9 @@ async function getAdminOverview() {
       status: supplier.status,
       contactName: supplier.name,
       contactEmail: supplier.email,
-      totalProducts: supplier._count.products,
+          // approvedProducts: approvedProductCount, // Removed as per 2026-01-07 request
       approvedProducts: approvedProductCount,
-      totalMatches: totalSupplierMatches,
+          // totalMatches: totalSupplierMatches, // Removed as per 2026-01-07 request
       totalViews: totalSupplierViews,
       inquiries: supplier._count.inquiries,
     };
@@ -109,12 +110,12 @@ async function getAdminOverview() {
       suppliers: {
         total: totalSuppliers,
         approved: approvedSuppliers,
-        pending: pendingSuppliers,
+            // pending: pendingSuppliers, // Removed as per 2026-01-07 request
       },
       products: {
         total: totalProducts,
-        approved: approvedProducts,
-        pending: pendingProducts,
+            // approved: approvedProducts, // Removed as per 2026-01-07 request
+            // pending: pendingProducts, // Removed as per 2026-01-07 request
         rejected: rejectedProducts,
       },
       inquiries: {
