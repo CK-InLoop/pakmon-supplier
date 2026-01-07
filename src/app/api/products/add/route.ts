@@ -144,8 +144,8 @@ export async function POST(req: NextRequest) {
       // Actually, if we're moving to REAL APIs, the user MUST have a supplier profile.
       return NextResponse.json(
         {
-          error: 'Supplier profile not found. Please complete onboarding first or run the seed script.',
-          redirect: '/onboarding'
+          error: 'Supplier profile not found. Please contact an administrator.',
+          redirect: '/login'
         },
         { status: 404 }
       );

@@ -14,7 +14,7 @@ export default async function Layout({
     redirect('/login');
   }
 
-  // Check if user has completed onboarding (has supplier profile)
+  // Check if user has a supplier profile
   let supplier;
   const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN';
 
@@ -34,7 +34,6 @@ export default async function Layout({
   }
 
   // Dashboard layout should be accessible even if no supplier profile exists yet
-  // Redirection to onboarding has been removed as per user request
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 

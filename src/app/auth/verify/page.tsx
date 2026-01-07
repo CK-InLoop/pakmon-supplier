@@ -13,7 +13,7 @@ function VerifyContent() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
+
     if (!token) {
       setStatus('error');
       setMessage('Invalid verification link');
@@ -31,14 +31,14 @@ function VerifyContent() {
       if (response.ok) {
         setStatus('success');
         setMessage('Email verified successfully!');
-        
-        // Store user info in localStorage for onboarding
+
+        // Store user info in localStorage
         if (data.user) {
           localStorage.setItem('verifiedUser', JSON.stringify(data.user));
         }
-        
+
         setTimeout(() => {
-          router.push('/onboarding');
+          router.push('/dashboard');
         }, 2000);
       } else {
         setStatus('error');
@@ -69,7 +69,7 @@ function VerifyContent() {
             </h2>
             <p className="text-gray-600 mb-4">{message}</p>
             <p className="text-sm text-gray-500">
-              Redirecting to onboarding...
+              Redirecting to dashboard...
             </p>
           </>
         )}

@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
     if (!user || !user.supplier) {
       return NextResponse.json(
         {
-          error: 'Supplier profile not found. Please complete onboarding first.',
-          redirect: '/onboarding'
+          error: 'Supplier profile not found. Please contact an administrator.',
+          redirect: '/login'
         },
         { status: 404 }
       );

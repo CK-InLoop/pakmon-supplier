@@ -90,7 +90,6 @@ export default function ProductsPage() {
           errorData = { error: `Failed to fetch products: ${response.status} ${response.statusText}` };
         }
 
-        // Redirection to onboarding has been disabled
         throw new Error(errorData.error || 'Failed to fetch products');
       }
 
@@ -257,7 +256,6 @@ export default function ProductsPage() {
       }
 
       if (!response.ok) {
-        // Redirection to onboarding has been disabled
         throw new Error(data.error || `Failed to delete product: ${response.status} ${response.statusText}`);
       }
 

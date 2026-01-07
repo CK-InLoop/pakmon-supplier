@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   // Simplified middleware to avoid Prisma client issues in build
   // Authentication will be handled at the page level instead
-  
+
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup') ||
@@ -14,8 +14,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname.startsWith('/auth/verify') ||
     request.nextUrl.pathname.startsWith('/auth/reset-password') ||
-    request.nextUrl.pathname.startsWith('/auth/error') ||
-    request.nextUrl.pathname.startsWith('/onboarding');
+    request.nextUrl.pathname.startsWith('/auth/error');
 
   const isProtectedPage = request.nextUrl.pathname.startsWith('/dashboard');
 
