@@ -13,9 +13,10 @@ export async function createSupplier(data: {
     address?: string;
     category?: string;
     subCategory?: string;
+    profileImage?: string;
 }) {
     try {
-        const { name, companyName, email, phone, address, category, subCategory } = data;
+        const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
         // 1. Check if user already exists
         const existingUser = await prisma.users.findUnique({
@@ -53,6 +54,7 @@ export async function createSupplier(data: {
                 address,
                 category,
                 subCategory,
+                profileImage,
                 status: 'APPROVED',
                 verified: true,
             },

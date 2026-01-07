@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
         }
         throw new Error(data.error || `Failed to fetch analytics (${response.status})`);
       }
-
+      
       setAnalytics(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
