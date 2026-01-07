@@ -136,10 +136,6 @@ export default function SuppliersPage() {
                                     <div className="p-3 bg-blue-50 rounded-lg">
                                         <Building2 className="w-6 h-6 text-blue-600" />
                                     </div>
-                                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${supplier.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                        {supplier.status}
-                                    </span>
                                 </div>
 
                                 <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">

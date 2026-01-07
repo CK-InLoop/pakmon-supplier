@@ -65,50 +65,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </Link>
-
-        <Link href="/dashboard/products?status=APPROVED" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {stats?.approvedProducts || 0}
-              </p>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/dashboard/products?status=PENDING" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600 mt-2">
-                {stats?.pendingProducts || 0}
-              </p>
-            </div>
-            <div className="bg-yellow-100 rounded-full p-3">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/dashboard/products?hasMatches=true" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Total Matches
-              </p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
-                {stats?.totalMatches || 0}
-              </p>
-            </div>
-            <div className="bg-blue-100 rounded-full p-3">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* Quick Actions */}

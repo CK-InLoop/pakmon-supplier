@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
         }
         throw new Error(data.error || `Failed to fetch analytics (${response.status})`);
       }
-      
+
       setAnalytics(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -109,50 +109,6 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {analytics.summary.approvedProducts}
-              </p>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600 mt-2">
-                {analytics.summary.pendingProducts}
-              </p>
-            </div>
-            <div className="bg-yellow-100 rounded-full p-3">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Total Matches
-              </p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
-                {analytics.summary.totalMatches}
-              </p>
-            </div>
-            <div className="bg-blue-100 rounded-full p-3">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
               <p className="text-sm font-medium text-gray-600">
                 Total Views
               </p>
@@ -191,9 +147,6 @@ export default function AnalyticsPage() {
                     Product
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Matches
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Views
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -209,26 +162,6 @@ export default function AnalyticsPage() {
                         <div className="text-sm font-medium text-gray-900">
                           {product.title || 'Untitled Product'}
                         </div>
-                        {product.status === 'APPROVED' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium w-fit">
-                            <CheckCircle className="w-3 h-3" />
-                            Approved
-                          </span>
-                        ) : product.status === 'REJECTED' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium w-fit">
-                            Rejected
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium w-fit">
-                            Pending
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1 text-sm text-gray-900">
-                        <TrendingUp className="w-4 h-4 text-blue-500" />
-                        {product.matchCount || 0}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -250,25 +183,6 @@ export default function AnalyticsPage() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex items-start gap-3">
-          <div className="bg-blue-100 rounded-full p-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-blue-900 mb-1">
-              How are matches calculated?
-            </h3>
-            <p className="text-sm text-blue-800">
-              Matches represent how many times your products appeared in AI search results
-              when customers asked questions. Higher matches mean your products are more
-              discoverable through our AI-powered chat system.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
