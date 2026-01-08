@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search } from 'lucide-react';
+import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search, Pencil } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getSuppliers } from '@/app/actions/suppliers';
 import { AddSupplierSheet } from './add-supplier-sheet';
+import { EditSupplierSheet } from './edit-supplier-sheet';
 
 interface Supplier {
     id: string;
@@ -16,6 +17,7 @@ interface Supplier {
     address?: string;
     category?: string;
     subCategory?: string;
+    profileImage?: string;
     status: string;
     _count: {
         products: number;
@@ -26,6 +28,8 @@ export default function SuppliersPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const searchParams = useSearchParams();
 
@@ -60,6 +64,11 @@ export default function SuppliersPage() {
         supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleEditSupplier = (supplier: Supplier) => {
+        setSelectedSupplier(supplier);
+        setIsEditSheetOpen(true);
+    };
 
     return (
         <div className="space-y-6">
@@ -136,6 +145,13 @@ export default function SuppliersPage() {
                                     <div className="p-3 bg-blue-50 rounded-lg">
                                         <Building2 className="w-6 h-6 text-blue-600" />
                                     </div>
+                                    <button
+                                        onClick={() => handleEditSupplier(supplier)}
+                                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                                        title="Edit Supplier"
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                    </button>
                                 </div>
 
                                 <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
@@ -205,6 +221,19 @@ export default function SuppliersPage() {
                     fetchSuppliers();
                 }}
             />
+
+            <EditSupplierSheet
+                isOpen={isEditSheetOpen}
+                supplier={selectedSupplier}
+                onClose={() => {
+                    setIsEditSheetOpen(false);
+                    setSelectedSupplier(null);
+                }}
+                onSuccess={() => {
+                    fetchSuppliers();
+                }}
+            />
         </div>
     );
 }
+

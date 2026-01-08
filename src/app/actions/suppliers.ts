@@ -90,3 +90,53 @@ export async function getSuppliers(filters?: { category?: string; subCategory?: 
         return { success: false, error: error.message || 'Failed to fetch suppliers.' };
     }
 }
+
+export async function getSupplierById(id: string) {
+    try {
+        const supplier = await prisma.suppliers.findUnique({
+            where: { id },
+        });
+
+        if (!supplier) {
+            return { success: false, error: 'Supplier not found.' };
+        }
+
+        return { success: true, supplier };
+    } catch (error: any) {
+        console.error('Error fetching supplier:', error);
+        return { success: false, error: error.message || 'Failed to fetch supplier.' };
+    }
+}
+
+export async function updateSupplier(id: string, data: {
+    name?: string;
+    companyName?: string;
+    phone?: string;
+    address?: string;
+    category?: string;
+    subCategory?: string;
+    profileImage?: string;
+}) {
+    try {
+        const { name, companyName, phone, address, category, subCategory, profileImage } = data;
+
+        const updatedSupplier = await prisma.suppliers.update({
+            where: { id },
+            data: {
+                ...(name && { name }),
+                ...(companyName && { companyName }),
+                ...(phone && { phone }),
+                ...(address !== undefined && { address }),
+                ...(category && { category }),
+                ...(subCategory && { subCategory }),
+                ...(profileImage !== undefined && { profileImage }),
+            },
+        });
+
+        revalidatePath('/dashboard/suppliers');
+        return { success: true, supplier: updatedSupplier };
+    } catch (error: any) {
+        console.error('Error updating supplier:', error);
+        return { success: false, error: error.message || 'Failed to update supplier.' };
+    }
+}
