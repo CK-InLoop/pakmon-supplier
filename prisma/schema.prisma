@@ -25,6 +25,21 @@ model Admin {
   updatedAt DateTime @updatedAt @db.Date
 }
 
+// Carousel Images for homepage slider
+model CarouselImages {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl    String
+  title       String?
+  description String?
+  link        String   @default("/products")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Date
+  updatedAt   DateTime @updatedAt @db.Date
+
+  @@map("carousel_images")
+}
+
 // ============================================
 // Supplier Portal Models (Existing + Enhanced)
 // ============================================
