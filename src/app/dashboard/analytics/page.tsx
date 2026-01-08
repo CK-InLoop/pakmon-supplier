@@ -8,18 +8,17 @@ interface Product {
   title: string;
   matchCount: number;
   viewCount: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
 }
 
 interface Analytics {
   summary: {
-    totalProducts: number;
-    approvedProducts: number;
-    pendingProducts: number;
-    rejectedProducts: number;
+    totalProducts?: number;
     totalMatches: number;
     totalViews: number;
+    // Optional nested structure support
+    products?: { total: number };
+    suppliers?: { total: number };
   };
   products: Product[];
 }
@@ -97,7 +96,7 @@ export default function AnalyticsPage() {
                 Total Products
               </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {analytics.summary.totalProducts}
+                {analytics.summary.totalProducts ?? analytics.summary.products?.total ?? 0}
               </p>
             </div>
             <div className="bg-purple-100 rounded-full p-3">
@@ -106,33 +105,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {analytics.summary.approvedProducts}
-              </p>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600 mt-2">
-                {analytics.summary.pendingProducts}
-              </p>
-            </div>
-            <div className="bg-yellow-100 rounded-full p-3">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
@@ -206,20 +179,6 @@ export default function AnalyticsPage() {
                         <div className="text-sm font-medium text-gray-900">
                           {product.title || 'Untitled Product'}
                         </div>
-                        {product.status === 'APPROVED' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium w-fit">
-                            <CheckCircle className="w-3 h-3" />
-                            Approved
-                          </span>
-                        ) : product.status === 'REJECTED' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium w-fit">
-                            Rejected
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium w-fit">
-                            Pending
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

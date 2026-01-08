@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { Package, CheckCircle, Clock, TrendingUp, Building2, ImageIcon } from 'lucide-react';
 
 interface Stats {
-  totalProducts: number;
-  totalSuppliers: number;
-  approvedProducts: number;
-  pendingProducts: number;
-  totalMatches: number;
+  totalProducts?: number;
+  totalSuppliers?: number;
+  // Admin response structure
+  products?: { total: number };
+  suppliers?: { total: number };
   carouselImages?: number;
 }
 
@@ -29,6 +29,8 @@ export default function DashboardPage() {
       ]);
       const analyticsData = await analyticsResponse.json();
       const carouselData = await carouselResponse.json();
+
+      // Handle both Admin (nested) and Supplier (flat) structures
       setStats({
         ...analyticsData.summary,
         carouselImages: carouselData.count || 0,
@@ -48,6 +50,10 @@ export default function DashboardPage() {
     );
   }
 
+  // Helper to get counts regardless of structure
+  const getTotalProducts = () => stats?.totalProducts ?? stats?.products?.total ?? 0;
+  const getTotalSuppliers = () => stats?.totalSuppliers ?? stats?.suppliers?.total ?? 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -66,7 +72,7 @@ export default function DashboardPage() {
                 Total Products
               </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {stats?.totalProducts || 0}
+                {getTotalProducts()}
               </p>
             </div>
             <div className="bg-green-100 rounded-full p-3">
@@ -82,7 +88,7 @@ export default function DashboardPage() {
                 Total Suppliers
               </p>
               <p className="text-3xl font-bold text-indigo-600 mt-2">
-                {stats?.totalSuppliers || 0}
+                {getTotalSuppliers()}
               </p>
             </div>
             <div className="bg-indigo-100 rounded-full p-3">
@@ -105,7 +111,7 @@ export default function DashboardPage() {
               <ImageIcon className="w-6 h-6 text-amber-600" />
             </div>
           </div>
-        {/*
+          {/*
           Removed Approved, Pending, and Total Matches UI as per 2026-01-07 request. Restore if needed.
           <Link href="/dashboard/products?status=APPROVED" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
             ...approved products card...
