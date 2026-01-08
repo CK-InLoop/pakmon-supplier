@@ -19,6 +19,7 @@
     "@azure/storage-blob": "^12.29.1",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^6.2.0",
+    "@react-email/render": "^2.0.2",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.468.0",
