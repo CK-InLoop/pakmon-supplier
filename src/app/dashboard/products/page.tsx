@@ -19,7 +19,7 @@ interface Product {
   tags: string[];
   priceRange?: string;
   capacity?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+
   viewCount: number;
   matchCount: number;
   createdAt: string;
@@ -67,11 +67,10 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const status = searchParams.get('status');
+
       const hasMatches = searchParams.get('hasMatches');
 
       let url = supplierId ? `/api/products/list?supplierId=${supplierId}` : '/api/products/list';
-      if (status) url += `${url.includes('?') ? '&' : '?'}status=${status}`;
       if (hasMatches) url += `${url.includes('?') ? '&' : '?'}hasMatches=${hasMatches}`;
 
       const response = await fetch(url);
@@ -436,25 +435,7 @@ export default function ProductsPage() {
               )}
 
               <div className="p-6">
-                {/* Status Badge */}
-                <div className="mb-3">
-                  {product.status?.toUpperCase() === 'APPROVED' ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium">
-                      <CheckCircle className="w-4 h-4" />
-                      Approved
-                    </span>
-                  ) : product.status?.toUpperCase() === 'REJECTED' ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full font-medium">
-                      <Clock className="w-4 h-4" />
-                      Rejected
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full font-medium">
-                      <Clock className="w-4 h-4" />
-                      Pending
-                    </span>
-                  )}
-                </div>
+
 
                 {/* Product Title */}
                 <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
@@ -544,7 +525,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Share URL Display (for approved products) */}
-                {product.status?.toUpperCase() === 'APPROVED' && (
+                {(
                   <div className="mt-3 p-2 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <ExternalLink className="w-3 h-3" />

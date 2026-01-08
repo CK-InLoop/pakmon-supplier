@@ -111,8 +111,7 @@ model products {
   youtubeUrl String?  // YouTube video URL for product demo/overview
 
   // Status tracking
-  status          String  @default("PENDING") // PENDING, APPROVED, REJECTED
-  rejectionReason String?
+
 
   // Metadata
   views           Int @default(0)

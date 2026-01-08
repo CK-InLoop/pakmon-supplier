@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
         capacity: capacity || undefined,
         category,
         tags,
-        status: 'PENDING',
+
       },
     });
 

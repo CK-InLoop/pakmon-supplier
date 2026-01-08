@@ -5,8 +5,6 @@ import { prisma } from '@/lib/prisma';
 async function getAdminOverview() {
   const [
     totalSuppliers,
-    pendingProducts,
-    rejectedProducts,
     totalInquiries,
     resolvedInquiries,
     productStats,
@@ -20,8 +18,7 @@ async function getAdminOverview() {
     // prisma.suppliers.count({ where: { status: 'PENDING' } }),
     // prisma.products.count({ where: { status: 'APPROVED' } }),
     // prisma.products.count({ where: { status: 'PENDING' } }),
-    prisma.products.count({ where: { status: 'PENDING' } }),
-    prisma.products.count({ where: { status: 'REJECTED' } }),
+
     prisma.inquiries.count(),
     prisma.inquiries.count({ where: { status: 'responded' } }),
     prisma.products.aggregate({
@@ -39,7 +36,7 @@ async function getAdminOverview() {
           select: { products: true, inquiries: true },
         },
         products: {
-          select: { recommendations: true, views: true, status: true },
+          select: { recommendations: true, views: true },
         },
       },
     }),
@@ -61,7 +58,6 @@ async function getAdminOverview() {
       select: {
         id: true,
         name: true,
-        status: true,
         createdAt: true,
         supplier: {
           select: { companyName: true },
@@ -72,14 +68,13 @@ async function getAdminOverview() {
 
   const approvedSuppliers = 0;
   const totalProducts = 0;
+  const rejectedProducts = 0;
 
   const totalMatches = productStats._sum.recommendations ?? 0;
   const totalViews = productStats._sum.views ?? 0;
 
   const topSuppliers = topSuppliersRaw.map((supplier) => {
-    const approvedProductCount = supplier.products.filter(
-      (p) => p.status === 'APPROVED'
-    ).length;
+    const approvedProductCount = supplier.products.length;
     const totalSupplierMatches = supplier.products.reduce(
       (sum, p) => sum + (p.recommendations || 0),
       0
@@ -142,16 +137,10 @@ async function getSupplierAnalytics(userId: string) {
   // Get global counts for the dashboard cards
   const [
     globalTotalProducts,
-    globalApprovedProducts,
-    globalPendingProducts,
-    globalRejectedProducts,
     globalTotalMatches,
     globalTotalSuppliers
   ] = await Promise.all([
     prisma.products.count(),
-    prisma.products.count({ where: { status: 'APPROVED' } }),
-    prisma.products.count({ where: { status: 'PENDING' } }),
-    prisma.products.count({ where: { status: 'REJECTED' } }),
     prisma.products.aggregate({
       _sum: { recommendations: true },
     }).then(res => res._sum.recommendations ?? 0),
@@ -163,9 +152,6 @@ async function getSupplierAnalytics(userId: string) {
       scope: 'supplier',
       summary: {
         totalProducts: globalTotalProducts,
-        approvedProducts: globalApprovedProducts,
-        pendingProducts: globalPendingProducts,
-        rejectedProducts: globalRejectedProducts,
         totalMatches: globalTotalMatches,
         totalViews: 0,
       },
@@ -182,7 +168,6 @@ async function getSupplierAnalytics(userId: string) {
       name: true,
       recommendations: true,
       views: true,
-      status: true,
       createdAt: true,
     },
     orderBy: {
@@ -197,9 +182,6 @@ async function getSupplierAnalytics(userId: string) {
     summary: {
       totalProducts: globalTotalProducts,
       totalSuppliers: globalTotalSuppliers,
-      approvedProducts: globalApprovedProducts,
-      pendingProducts: globalPendingProducts,
-      rejectedProducts: globalRejectedProducts,
       totalMatches: globalTotalMatches,
       totalViews,
     },
@@ -208,7 +190,6 @@ async function getSupplierAnalytics(userId: string) {
       title: p.name,
       matchCount: p.recommendations,
       viewCount: p.views,
-      status: p.status,
       createdAt: p.createdAt,
     })),
   };

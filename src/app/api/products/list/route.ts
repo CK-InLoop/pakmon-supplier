@@ -29,7 +29,6 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get('supplierId');
-    const status = searchParams.get('status');
     const hasMatches = searchParams.get('hasMatches') === 'true';
 
     const where: any = {};
@@ -38,9 +37,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Apply additional filters
-    if (status) {
-      where.status = status.toUpperCase();
-    }
     if (hasMatches) {
       where.matchCount = { gt: 0 };
     }
