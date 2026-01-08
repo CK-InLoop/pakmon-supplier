@@ -17,11 +17,13 @@ export async function GET(req: NextRequest) {
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: {
-        supplier: true,
+        suppliers: true,
       },
     });
 
-    if (!user || !user.supplier) {
+    const supplierProfile = user?.suppliers?.[0];
+
+    if (!user || !supplierProfile) {
       return NextResponse.json(
         {
           error: 'Supplier profile not found. Please contact an administrator.',
@@ -32,16 +34,16 @@ export async function GET(req: NextRequest) {
     }
 
     const supplier = {
-      id: user.supplier.id,
+      id: supplierProfile.id,
       name: user.name,
       email: user.email,
-      companyName: user.supplier.companyName,
-      phone: user.supplier.contactPhone,
-      address: user.supplier.address,
-      description: user.supplier.description,
-      verified: !!user.supplier.verified,
-      status: user.supplier.status,
-      createdAt: user.supplier.createdAt,
+      companyName: supplierProfile.companyName,
+      phone: supplierProfile.contactPhone,
+      address: supplierProfile.address,
+      description: supplierProfile.description,
+      verified: !!supplierProfile.verified,
+      status: supplierProfile.status,
+      createdAt: supplierProfile.createdAt,
     };
 
     return NextResponse.json({ supplier });
@@ -68,9 +70,21 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { companyName, phone, address, description } = body;
 
-    // Update supplier profile
-    const updatedSupplier = await prisma.suppliers.update({
+    // First find the supplier by userId
+    const existingSupplier = await prisma.suppliers.findFirst({
       where: { userId: session.user.id },
+    });
+
+    if (!existingSupplier) {
+      return NextResponse.json(
+        { error: 'Supplier profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update supplier profile by id
+    const updatedSupplier = await prisma.suppliers.update({
+      where: { id: existingSupplier.id },
       data: {
         companyName,
         contactPhone: phone,
