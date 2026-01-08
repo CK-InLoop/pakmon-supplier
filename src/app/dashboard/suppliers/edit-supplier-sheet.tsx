@@ -87,6 +87,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
     const [formData, setFormData] = useState({
         name: '',
         companyName: '',
+        email: '',
         phone: '',
         address: '',
         category: '',
@@ -99,6 +100,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
             setFormData({
                 name: supplier.name || '',
                 companyName: supplier.companyName || '',
+                email: supplier.email || '',
                 phone: supplier.phone || '',
                 address: supplier.address || '',
                 category: supplier.category || '',
@@ -383,15 +385,17 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email Address
+                                        Email Address <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="email"
-                                        value={supplier.email || ''}
-                                        disabled
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                        name="email"
+                                        required
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                        placeholder="supplier@example.com"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                                 </div>
 
                                 <div>

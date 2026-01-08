@@ -1,9 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/lib/auth';
 
 export async function createSupplier(data: {
     name: string;
@@ -18,37 +16,11 @@ export async function createSupplier(data: {
     try {
         const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
-        // 1. Check if user already exists
-        const existingUser = await prisma.users.findUnique({
-            where: { email },
-        });
-
-        if (existingUser) {
-            return { success: false, error: 'User with this email already exists.' };
-        }
-
-        // 2. Hash default password
-        const defaultPassword = 'password123';
-        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-
-        // 3. Create User
-        const newUser = await prisma.users.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: 'SUPPLIER',
-                emailVerified: new Date(),
-            },
-        });
-
-        // 4. Create Supplier
+        // Create Supplier as a standalone record (no user account needed)
         const newSupplier = await prisma.suppliers.create({
             data: {
-                userId: newUser.id,
                 name,
                 email,
-                password: hashedPassword,
                 companyName,
                 phone,
                 address,
@@ -111,6 +83,7 @@ export async function getSupplierById(id: string) {
 export async function updateSupplier(id: string, data: {
     name?: string;
     companyName?: string;
+    email?: string;
     phone?: string;
     address?: string;
     category?: string;
@@ -118,13 +91,14 @@ export async function updateSupplier(id: string, data: {
     profileImage?: string;
 }) {
     try {
-        const { name, companyName, phone, address, category, subCategory, profileImage } = data;
+        const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
         const updatedSupplier = await prisma.suppliers.update({
             where: { id },
             data: {
                 ...(name && { name }),
                 ...(companyName && { companyName }),
+                ...(email && { email }),
                 ...(phone && { phone }),
                 ...(address !== undefined && { address }),
                 ...(category && { category }),

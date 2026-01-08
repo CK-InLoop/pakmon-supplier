@@ -20,7 +20,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         const user = await prisma.users.findUnique({
           where: { email: credentials.email as string },
           include: {
-            supplier: true,
+            suppliers: true,
           },
         });
 
@@ -42,12 +42,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           throw new Error('Invalid password');
         }
 
+        // Get the first supplier profile (if exists)
+        const supplierProfile = user.suppliers?.[0];
+
         return {
           id: user.id,
           email: user.email || '',
           name: user.name || '',
           role: user.role,
-          companyName: user.supplier?.companyName || undefined,
+          companyName: supplierProfile?.companyName || undefined,
           verified: !!user.emailVerified,
         };
       },

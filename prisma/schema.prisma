@@ -32,12 +32,12 @@ model Admin {
 // Supplier model - enhanced with admin panel fields
 model suppliers {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String  @unique @db.ObjectId // Link to users table
-  user         users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String? @db.ObjectId // Optional - only if supplier needs login access
+  user         users?  @relation(fields: [userId], references: [id], onDelete: SetNull)
   
   name         String?
-  email        String? @unique
-  password     String
+  email        String? // Removed @unique to allow multiple suppliers with same email
+  password     String? // Optional - only needed if supplier can login
   companyName  String?
   phone        String?
   contactPhone String? // Alternative contact phone
@@ -231,7 +231,7 @@ model users {
 
   accounts accounts[]
   sessions sessions[]
-  supplier suppliers? // 1:1 relation to supplier profile
+  suppliers suppliers[] // 1:many relation to supplier profiles (allows multiple suppliers per user)
 }
 
 // OAuth accounts
