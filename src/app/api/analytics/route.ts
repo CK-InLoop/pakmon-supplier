@@ -135,7 +135,7 @@ async function getAdminOverview() {
 }
 
 async function getSupplierAnalytics(userId: string) {
-  const supplier = await prisma.suppliers.findUnique({
+  const supplier = await prisma.suppliers.findFirst({
     where: { userId },
   });
 
