@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 async function getAdminOverview() {
   const [
     totalSuppliers,
+    totalProducts, // Added back
     totalInquiries,
     resolvedInquiries,
     productStats,
@@ -13,6 +14,7 @@ async function getAdminOverview() {
     recentProducts,
   ] = await Promise.all([
     prisma.suppliers.count(),
+    prisma.products.count(), // Added back query
     // Removed approved/pending counts as per 2026-01-07 request. Restore if needed.
     // prisma.suppliers.count({ where: { status: 'APPROVED' } }),
     // prisma.suppliers.count({ where: { status: 'PENDING' } }),
@@ -66,9 +68,8 @@ async function getAdminOverview() {
     }),
   ]);
 
-  const approvedSuppliers = 0;
-  const totalProducts = 0;
-  const rejectedProducts = 0;
+  // Removed manual overrides
+
 
   const totalMatches = productStats._sum.recommendations ?? 0;
   const totalViews = productStats._sum.views ?? 0;
@@ -103,14 +104,9 @@ async function getAdminOverview() {
     summary: {
       suppliers: {
         total: totalSuppliers,
-        approved: approvedSuppliers,
-        // pending: pendingSuppliers, // Removed as per 2026-01-07 request
       },
       products: {
         total: totalProducts,
-        // approved: approvedProducts, // Removed as per 2026-01-07 request
-        // pending: pendingProducts, // Removed as per 2026-01-07 request
-        rejected: rejectedProducts,
       },
       inquiries: {
         total: totalInquiries,
@@ -152,6 +148,7 @@ async function getSupplierAnalytics(userId: string) {
       scope: 'supplier',
       summary: {
         totalProducts: globalTotalProducts,
+        totalSuppliers: globalTotalSuppliers, // Added missing field
         totalMatches: globalTotalMatches,
         totalViews: 0,
       },
