@@ -138,16 +138,25 @@ export default function SuppliersPage() {
                     {filteredSuppliers.map((supplier) => (
                         <div
                             key={supplier.id}
-                            className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 overflow-hidden"
+                            className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 overflow-hidden relative group"
                         >
+                            <Link
+                                href={`/dashboard/products?supplierId=${supplier.id}`}
+                                className="absolute inset-0 z-10"
+                                aria-label={`View products for ${supplier.name}`}
+                            />
                             <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-blue-50 rounded-lg">
                                         <Building2 className="w-6 h-6 text-blue-600" />
                                     </div>
                                     <button
-                                        onClick={() => handleEditSupplier(supplier)}
-                                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleEditSupplier(supplier);
+                                        }}
+                                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition relative z-20"
                                         title="Edit Supplier"
                                     >
                                         <Pencil className="w-4 h-4" />
@@ -200,13 +209,12 @@ export default function SuppliersPage() {
                                         {supplier._count.products} Product{supplier._count.products !== 1 ? 's' : ''}
                                     </div>
 
-                                    <Link
-                                        href={`/dashboard/products?supplierId=${supplier.id}`}
-                                        className="flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700 transition"
+                                    <div
+                                        className="flex items-center gap-1 text-sm font-semibold text-green-600 group-hover:text-green-700 transition"
                                     >
                                         View Products
                                         <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
