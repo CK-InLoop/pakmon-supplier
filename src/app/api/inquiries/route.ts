@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get supplier for this user
-    const supplier = await prisma.suppliers.findUnique({
+    const supplier = await prisma.suppliers.findFirst({
       where: { userId: session.user.id },
     });
 

@@ -1,25 +1,38 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { X, Loader2, Upload, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
-import { createSupplier } from '@/app/actions/suppliers';
+import { useState, useCallback, useEffect } from 'react';
+import { X, Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { updateSupplier } from '@/app/actions/suppliers';
 
-interface AddSupplierSheetProps {
+interface Supplier {
+    id: string;
+    name?: string;
+    companyName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    category?: string;
+    subCategory?: string;
+    profileImage?: string;
+}
+
+interface EditSupplierSheetProps {
     isOpen: boolean;
+    supplier: Supplier | null;
     onClose: () => void;
     onSuccess: () => void;
 }
 
 interface UploadedImage {
-    file: File;
+    file: File | null;
     url: string | null;
     preview: string;
     progress: number;
-    status: 'pending' | 'uploading' | 'complete' | 'error';
+    status: 'pending' | 'uploading' | 'complete' | 'error' | 'existing';
     error?: string;
 }
 
-export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierSheetProps) {
+export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: EditSupplierSheetProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState<UploadedImage | null>(null);
@@ -80,6 +93,33 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
         category: '',
         subCategory: '',
     });
+
+    // Update form when supplier changes
+    useEffect(() => {
+        if (supplier) {
+            setFormData({
+                name: supplier.name || '',
+                companyName: supplier.companyName || '',
+                email: supplier.email || '',
+                phone: supplier.phone || '',
+                address: supplier.address || '',
+                category: supplier.category || '',
+                subCategory: supplier.subCategory || '',
+            });
+
+            if (supplier.profileImage) {
+                setImage({
+                    file: null,
+                    url: supplier.profileImage,
+                    preview: supplier.profileImage,
+                    progress: 100,
+                    status: 'existing',
+                });
+            } else {
+                setImage(null);
+            }
+        }
+    }, [supplier]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -159,7 +199,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
     };
 
     const retryUpload = () => {
-        if (image) {
+        if (image && image.file) {
             uploadImage(image.file);
         }
     };
@@ -167,6 +207,8 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!supplier) return;
 
         // Check if image upload is in progress
         if (image && image.status === 'uploading') {
@@ -182,17 +224,15 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
         setLoading(true);
 
         try {
-            const result = await createSupplier({
+            const result = await updateSupplier(supplier.id, {
                 ...formData,
                 profileImage: image?.url || undefined,
             });
             if (result.success) {
-                setFormData({ name: '', companyName: '', email: '', phone: '', address: '', category: '', subCategory: '' });
-                setImage(null);
                 onSuccess();
                 onClose();
             } else {
-                setError(result.error || 'Failed to create supplier');
+                setError(result.error || 'Failed to update supplier');
             }
         } catch (err) {
             setError('An unexpected error occurred');
@@ -200,6 +240,8 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
             setLoading(false);
         }
     };
+
+    if (!supplier) return null;
 
     return (
         <>
@@ -216,7 +258,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b">
-                        <h2 className="text-xl font-bold text-gray-900">Add New Supplier</h2>
+                        <h2 className="text-xl font-bold text-gray-900">Edit Supplier</h2>
                         <button
                             onClick={onClose}
                             className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition"
@@ -227,7 +269,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
 
                     {/* Form */}
                     <div className="flex-1 overflow-y-auto p-6">
-                        <form id="add-supplier-form" onSubmit={handleSubmit} className="space-y-6">
+                        <form id="edit-supplier-form" onSubmit={handleSubmit} className="space-y-6">
                             {error && (
                                 <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">
                                     {error}
@@ -248,10 +290,10 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                                                 accept="image/jpeg,image/png,image/webp"
                                                 onChange={handleImageChange}
                                                 className="hidden"
-                                                id="supplier-image-upload"
+                                                id="edit-supplier-image-upload"
                                             />
                                             <label
-                                                htmlFor="supplier-image-upload"
+                                                htmlFor="edit-supplier-image-upload"
                                                 className="cursor-pointer flex flex-col items-center"
                                             >
                                                 <ImageIcon className="w-10 h-10 text-gray-400 mb-2" />
@@ -283,7 +325,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
 
                                             {/* Status indicator */}
                                             <div className="absolute top-2 left-2">
-                                                {image.status === 'complete' && (
+                                                {(image.status === 'complete' || image.status === 'existing') && (
                                                     <CheckCircle className="w-6 h-6 text-green-500 bg-white rounded-full" />
                                                 )}
                                                 {image.status === 'error' && (
@@ -352,7 +394,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                                         value={formData.email}
                                         onChange={handleChange}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                                        placeholder="john@example.com"
+                                        placeholder="supplier@example.com"
                                     />
                                 </div>
 
@@ -461,12 +503,12 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                         </button>
                         <button
                             type="submit"
-                            form="add-supplier-form"
+                            form="edit-supplier-form"
                             disabled={loading || (image?.status === 'uploading')}
                             className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {loading ? 'Adding...' : image?.status === 'uploading' ? 'Uploading...' : 'Add Supplier'}
+                            {loading ? 'Saving...' : image?.status === 'uploading' ? 'Uploading...' : 'Save Changes'}
                         </button>
                     </div>
                 </div>

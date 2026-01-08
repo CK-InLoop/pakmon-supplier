@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Find supplier linked to session user
-      supplier = await prisma.suppliers.findUnique({
+      supplier = await prisma.suppliers.findFirst({
         where: { userId: session.user.id },
       });
     }

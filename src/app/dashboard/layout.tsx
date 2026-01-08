@@ -19,7 +19,7 @@ export default async function Layout({
   const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN';
 
   try {
-    supplier = await prisma.suppliers.findUnique({
+    supplier = await prisma.suppliers.findFirst({
       where: { userId: session.user.id },
       select: { id: true, companyName: true },
     });

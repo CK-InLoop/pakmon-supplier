@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, CheckCircle, Clock, TrendingUp, Building2 } from 'lucide-react';
+import { Package, CheckCircle, Clock, TrendingUp, Building2, ImageIcon } from 'lucide-react';
 
 interface Stats {
   totalProducts: number;
+  totalSuppliers: number;
   approvedProducts: number;
   pendingProducts: number;
   totalMatches: number;
+  carouselImages?: number;
 }
 
 export default function DashboardPage() {
@@ -21,9 +23,16 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/analytics');
-      const data = await response.json();
-      setStats(data.summary);
+      const [analyticsResponse, carouselResponse] = await Promise.all([
+        fetch('/api/analytics'),
+        fetch('/api/carousel/count'),
+      ]);
+      const analyticsData = await analyticsResponse.json();
+      const carouselData = await carouselResponse.json();
+      setStats({
+        ...analyticsData.summary,
+        carouselImages: carouselData.count || 0,
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -66,45 +75,34 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {stats?.approvedProducts || 0}
-              </p>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/dashboard/products?status=PENDING" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600 mt-2">
-                {stats?.pendingProducts || 0}
-              </p>
-            </div>
-            <div className="bg-yellow-100 rounded-full p-3">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/dashboard/products?hasMatches=true" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+        <Link href="/dashboard/suppliers" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">
-                Total Matches
+                Total Suppliers
               </p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
-                {stats?.totalMatches || 0}
+              <p className="text-3xl font-bold text-indigo-600 mt-2">
+                {stats?.totalSuppliers || 0}
               </p>
             </div>
-            <div className="bg-blue-100 rounded-full p-3">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
+            <div className="bg-indigo-100 rounded-full p-3">
+              <Building2 className="w-6 h-6 text-indigo-600" />
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/dashboard/carousel" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Carousel Images
+              </p>
+              <p className="text-3xl font-bold text-amber-600 mt-2">
+                {stats?.carouselImages || 0}
+              </p>
+            </div>
+            <div className="bg-amber-100 rounded-full p-3">
+              <ImageIcon className="w-6 h-6 text-amber-600" />
             </div>
           </div>
         {/*

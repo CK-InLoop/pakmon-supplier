@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const categories = [
     {
-      name: 'Oil',
+      name: 'OIL & GAS Piping Systems',
       icon: Package,
       subCategories: [
         'NG Factory Pipelines and SKIDS Installation',
@@ -39,7 +39,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       ]
     },
     {
-      name: 'Dairy',
+      name: 'Dairy & Food',
       icon: Package,
       subCategories: [
         'Dairy plants',
@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       ]
     },
     {
-      name: 'Consulting',
+      name: 'Consulting & Services',
       icon: Package,
       subCategories: [
         'AMC Contracts',
