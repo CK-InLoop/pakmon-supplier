@@ -269,7 +269,7 @@ export default function EditProductPage() {
   if (fetchLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading product...</div>
+        <div className="text-gray-500">Loading product..</div>
       </div>
     );
   }
