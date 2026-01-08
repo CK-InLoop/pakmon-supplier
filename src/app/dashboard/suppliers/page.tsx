@@ -91,7 +91,7 @@ export default function SuppliersPage() {
                 </div>
                 <button
                     onClick={() => setIsSheetOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
+                    className="flex-shrink-0 whitespace-nowrap flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
                 >
                     <Plus className="w-5 h-5" />
                     Add Supplier
