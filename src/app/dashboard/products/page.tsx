@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Plus, Edit, Trash2, CheckCircle, Clock, Eye, Share2, Check, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Share2, Check, ExternalLink } from 'lucide-react';
 
 interface Product {
   id: string;
