@@ -22,9 +22,6 @@ export async function GET() {
       approvedSuppliers,
       pendingSuppliers,
       totalProducts,
-      approvedProducts,
-      pendingProducts,
-      rejectedProducts,
       totalInquiries,
       respondedInquiries,
       productAggregate,
@@ -36,9 +33,6 @@ export async function GET() {
       prisma.suppliers.count({ where: { status: 'APPROVED' } }),
       prisma.suppliers.count({ where: { status: 'PENDING' } }),
       prisma.products.count(),
-      prisma.products.count({ where: { status: 'APPROVED' } }),
-      prisma.products.count({ where: { status: 'PENDING' } }),
-      prisma.products.count({ where: { status: 'REJECTED' } }),
       prisma.inquiries.count(),
       prisma.inquiries.count({ where: { status: 'responded' } }),
       prisma.products.aggregate({
@@ -56,7 +50,6 @@ export async function GET() {
             select: {
               recommendations: true,
               views: true,
-              status: true,
             },
           },
         },
@@ -78,7 +71,6 @@ export async function GET() {
         select: {
           id: true,
           title: true,
-          status: true,
           createdAt: true,
           supplier: { select: { companyName: true } },
         },
@@ -89,9 +81,7 @@ export async function GET() {
     const totalViews = productAggregate._sum.views ?? 0;
 
     const topSuppliers = topSuppliersRaw.map((supplier) => {
-      const approvedProductCount = supplier.products.filter(
-        (p) => p.status === 'APPROVED'
-      ).length;
+      const approvedProductCount = supplier.products.length;
       const supplierMatches = supplier.products.reduce(
         (sum, p) => sum + p.recommendations,
         0
@@ -124,9 +114,6 @@ export async function GET() {
         },
         products: {
           total: totalProducts,
-          approved: approvedProducts,
-          pending: pendingProducts,
-          rejected: rejectedProducts,
         },
         inquiries: {
           total: totalInquiries,
