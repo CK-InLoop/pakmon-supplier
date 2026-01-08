@@ -25,12 +25,12 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
     const [image, setImage] = useState<UploadedImage | null>(null);
 
     const categories = {
-        'Oil': [
+        'OIL & GAS Piping Systems': [
             'NG Factory Pipelines and SKIDS Installation',
             'LNG STORAGE TANKS AND SYSTEM INSTALLATION',
             'NITROGEN & OXYGEN GENERATORS'
         ],
-        'Dairy': [
+        'Dairy & Food': [
             'Dairy plants',
             'Water treatment plants',
             'CIP Plants',
@@ -49,7 +49,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
             'Tank farms',
             'Utility & pipings'
         ],
-        'Consulting': [
+        'Consulting & Services': [
             'AMC Contracts',
             'Fan Balance and Monitoring',
             'Thermal Inspections',
