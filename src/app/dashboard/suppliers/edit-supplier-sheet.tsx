@@ -39,48 +39,75 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
 
     const categories = {
         'OIL & GAS Piping Systems': [
-            'NG Factory Pipelines and SKIDS Installation',
-            'LNG STORAGE TANKS AND SYSTEM INSTALLATION',
-            'NITROGEN & OXYGEN GENERATORS'
+            { name: 'PROJECTS', isHeading: true },
+            { name: 'NG FACTORY PIPELINES AND SKIDS INSTALLATIONS' },
+            { name: 'LNG STORAGE TANKS AND SYSTEM INSTALLATIONS' },
+            { name: 'NITROGEN & OXYGEN GENERATORS' },
+            { name: 'PRODUCTS', isHeading: true },
+            { name: 'Pipes' },
+            { name: 'Valves & Fittings' },
+            { name: 'Flexible connections' },
+            { name: 'Filters' },
+            { name: 'Pressure Regulators' },
+            { name: 'Gas Meters' },
+            { name: 'Solenoid valves' },
+            { name: 'GAS SKIDS / PRMS' },
+            { name: 'LNG/LPG STORAGE TANKS and systems' }
         ],
         'Dairy & Food': [
-            'Dairy plants',
-            'Water treatment plants',
-            'CIP Plants',
-            'Pilot plant/Mini plant',
-            'Factory relocation',
-            'SS storage tanks & mixers',
-            'Cleaning stations',
-            'IBC Dosing Stations',
-            'Platforms',
-            'SS pipings'
+            { name: 'PROJECTS', isHeading: true },
+            { name: 'DAIRY PLANTS' },
+            { name: 'WATER TREATMENT PLANTS' },
+            { name: 'CIP PLANTS' },
+            { name: 'PILOT PLANT / MINI PLANT' },
+            { name: 'FACTORY RELOCATIONS' },
+            { name: 'SS STORAGE TANKS & MIXERS' },
+            { name: 'CLEANING STATIONS' },
+            { name: 'IBC DOSING STATIONS' },
+            { name: 'PLATFORMS' },
+            { name: 'SS PIPINGS' },
+            { name: 'PRODUCTS', isHeading: true },
+            { name: 'SS DRAINS' },
+            { name: 'SS Valve & Fittings' },
+            { name: 'Flexible connections' },
+            { name: 'pumps' }
         ],
         'Industrial': [
-            'Home and persona care plants',
-            'Sulphonation plant',
-            'Lab plant',
-            'Tank farms',
-            'Utility & pipings'
+            { name: 'PROJECTS', isHeading: true },
+            { name: 'HOME & PERSONAL CARE PLANTS' },
+            { name: 'SULPHONATION PLANT' },
+            { name: 'LAB PLANT' },
+            { name: 'TANK FARMS' },
+            { name: 'UTILITY & pipings' },
+            { name: 'READY FACTORIES TO BUY FOR BUSINESS INVESTMENTS' },
+            { name: 'PRODUCTS', isHeading: true },
+            { name: 'FANS' },
+            { name: 'NITROGEN / OXYGEN GENERATORS' },
+            { name: 'BOILERS' },
+            { name: 'PUMPS' },
+            { name: 'FILTRATION SYSTEMS' },
+            { name: 'LIQUID DOSING SYSTEMS' }
         ],
         'Consulting & Services': [
-            'AMC Contracts',
-            'Fan Balance and Monitoring',
-            'Thermal Inspections',
-            'Vibration Checks',
-            'Central Lubrication System',
-            'Tightening Checks',
-            '6S Trainings',
-            'TPM (Total Productive Maintenance)',
-            'Focused Improvements',
-            'Autonomous Maintenance',
-            'Planned Maintenance',
-            'Energy Savings Risk Assessment',
-            'Cost Reductions',
-            'Early Equipment Management',
-            'HSE Risk Assessments and Predictions',
-            'Efficiency Monitoring – FOL',
-            'Low Cost Automations',
-            'Supply Chain – Raw Materials'
+            { name: 'SERVICES', isHeading: true },
+            { name: 'AMC contracts' },
+            { name: 'FAN Balance and Monitoring' },
+            { name: 'Thermal inspections' },
+            { name: 'Vibration checks' },
+            { name: 'Central Lubrication system' },
+            { name: 'Tightening checks' },
+            { name: '6S Trainings' },
+            { name: 'TPM' },
+            { name: 'Focused Improvements' },
+            { name: 'Autonomus Maintenance' },
+            { name: 'Planned Maintenance' },
+            { name: 'Energy Savings RISK ASSESMENT' },
+            { name: 'COST Reductions' },
+            { name: 'Early Equipment Management' },
+            { name: 'HSE Risk Assessments and Predictions' },
+            { name: 'Efficiency monitoring-FOL' },
+            { name: 'Low cost Automations' },
+            { name: 'SUPPLY CHAIN - RAW MATERIALS' }
         ]
     };
 
@@ -466,7 +493,13 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                                 >
                                                     <option value="">Select Sub-category</option>
                                                     {formData.category && categories[formData.category as keyof typeof categories].map(sub => (
-                                                        <option key={sub} value={sub}>{sub}</option>
+                                                        sub.isHeading ? (
+                                                            <option key={sub.name} value="" disabled className="font-bold bg-gray-100">
+                                                                ── {sub.name} ──
+                                                            </option>
+                                                        ) : (
+                                                            <option key={sub.name} value={sub.name}>{sub.name}</option>
+                                                        )
                                                     ))}
                                                 </select>
                                             </div>
