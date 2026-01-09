@@ -43,8 +43,13 @@ export async function createSupplier(data: {
 export async function getSuppliers(filters?: { category?: string; subCategory?: string }) {
     try {
         const where: any = {};
-        if (filters?.category) where.category = filters.category;
-        if (filters?.subCategory) where.subCategory = filters.subCategory;
+        // Use case-insensitive matching for category and subCategory
+        if (filters?.category) {
+            where.category = { equals: filters.category, mode: 'insensitive' };
+        }
+        if (filters?.subCategory) {
+            where.subCategory = { equals: filters.subCategory, mode: 'insensitive' };
+        }
 
         const suppliers = await prisma.suppliers.findMany({
             where,

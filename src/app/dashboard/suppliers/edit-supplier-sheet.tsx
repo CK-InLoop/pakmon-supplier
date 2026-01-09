@@ -124,14 +124,30 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
     // Update form when supplier changes
     useEffect(() => {
         if (supplier) {
+            // Find matching category key (case-insensitive)
+            const categoryKeys = Object.keys(categories);
+            const matchedCategory = categoryKeys.find(
+                key => key.toLowerCase() === (supplier.category || '').toLowerCase()
+            ) || supplier.category || '';
+
+            // Find matching subcategory name (case-insensitive)
+            let matchedSubCategory = supplier.subCategory || '';
+            if (matchedCategory && categories[matchedCategory as keyof typeof categories]) {
+                const subCatList = categories[matchedCategory as keyof typeof categories];
+                const found = subCatList.find(
+                    sub => sub.name.toLowerCase() === (supplier.subCategory || '').toLowerCase()
+                );
+                if (found) matchedSubCategory = found.name;
+            }
+
             setFormData({
                 name: supplier.name || '',
                 companyName: supplier.companyName || '',
                 email: supplier.email || '',
                 phone: supplier.phone || '',
                 address: supplier.address || '',
-                category: supplier.category || '',
-                subCategory: supplier.subCategory || '',
+                category: matchedCategory,
+                subCategory: matchedSubCategory,
             });
 
             if (supplier.profileImage) {
