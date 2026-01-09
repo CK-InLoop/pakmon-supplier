@@ -23,12 +23,22 @@ export default function SettingsPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch('/api/auth/session');
+      // Try to get from our settings API first
+      const response = await fetch('/api/user/settings');
       if (response.ok) {
         const data = await response.json();
         setUser(data?.user || null);
         setNameValue(data?.user?.name || 'Admin User');
         setEmailValue(data?.user?.email || 'admin@example.com');
+      } else {
+        // Fallback to session API
+        const sessionResponse = await fetch('/api/auth/session');
+        if (sessionResponse.ok) {
+          const data = await sessionResponse.json();
+          setUser(data?.user || null);
+          setNameValue(data?.user?.name || 'Admin User');
+          setEmailValue(data?.user?.email || 'admin@example.com');
+        }
       }
     } catch (error) {
       console.error('Failed to fetch user info:', error);
@@ -38,10 +48,26 @@ export default function SettingsPage() {
   };
 
   const handleSaveName = async () => {
+    if (!nameValue.trim()) {
+      setError('Name cannot be empty');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
-      // For now, just update locally (you can add an API endpoint later)
+      const response = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameValue }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update name');
+      }
+
       setUser(prev => prev ? { ...prev, name: nameValue } : null);
       setEditingName(false);
       setSuccess('Name updated successfully!');
@@ -54,10 +80,26 @@ export default function SettingsPage() {
   };
 
   const handleSaveEmail = async () => {
+    if (!emailValue.trim() || !emailValue.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
-      // For now, just update locally (you can add an API endpoint later)
+      const response = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailValue }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update email');
+      }
+
       setUser(prev => prev ? { ...prev, email: emailValue } : null);
       setEditingEmail(false);
       setSuccess('Email updated successfully!');
@@ -121,6 +163,7 @@ export default function SettingsPage() {
                     onChange={(e) => setNameValue(e.target.value)}
                     className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                     autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                   />
                 ) : (
                   <p className="font-medium text-gray-900">{user?.name || 'Admin User'}</p>
@@ -141,6 +184,7 @@ export default function SettingsPage() {
                     onClick={() => {
                       setEditingName(false);
                       setNameValue(user?.name || 'Admin User');
+                      setError('');
                     }}
                     disabled={saving}
                     className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition"
@@ -175,6 +219,7 @@ export default function SettingsPage() {
                     onChange={(e) => setEmailValue(e.target.value)}
                     className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                     autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveEmail()}
                   />
                 ) : (
                   <p className="font-medium text-gray-900">{user?.email || 'admin@example.com'}</p>
@@ -195,6 +240,7 @@ export default function SettingsPage() {
                     onClick={() => {
                       setEditingEmail(false);
                       setEmailValue(user?.email || 'admin@example.com');
+                      setError('');
                     }}
                     disabled={saving}
                     className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition"
