@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -23,6 +23,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<{ name?: string; email?: string } | null>(null);
+
+  // Fetch user info from API to get the latest name/email
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch('/api/user/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data?.user || null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
+      }
+    };
+    fetchUserInfo();
+  }, [pathname]); // Refetch when navigating (e.g., after updating settings)
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -163,9 +180,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* User info */}
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <p className="text-sm font-semibold text-gray-900">
-              {session?.user?.name}
+              {userInfo?.name || session?.user?.name || 'Admin'}
             </p>
-            <p className="text-xs text-gray-600">{session?.user?.email}</p>
+            <p className="text-xs text-gray-600">{userInfo?.email || session?.user?.email}</p>
           </div>
 
           {/* Navigation */}
