@@ -119,3 +119,23 @@ export async function updateSupplier(id: string, data: {
         return { success: false, error: error.message || 'Failed to update supplier.' };
     }
 }
+
+export async function deleteSupplier(id: string) {
+    try {
+        // First delete all products associated with this supplier
+        await prisma.products.deleteMany({
+            where: { supplierId: id }
+        });
+
+        // Then delete the supplier
+        await prisma.suppliers.delete({
+            where: { id }
+        });
+
+        revalidatePath('/dashboard/suppliers');
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error deleting supplier:', error);
+        return { success: false, error: error.message || 'Failed to delete supplier.' };
+    }
+}

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { X, Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
-import { updateSupplier } from '@/app/actions/suppliers';
+import { X, Loader2, Image as ImageIcon, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { updateSupplier, deleteSupplier } from '@/app/actions/suppliers';
 
 interface Supplier {
     id: string;
@@ -34,6 +34,8 @@ interface UploadedImage {
 
 export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: EditSupplierSheetProps) {
     const [loading, setLoading] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState<UploadedImage | null>(null);
 
@@ -538,6 +540,64 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                 </div>
                             </div>
                         </form>
+
+                        {/* Danger Zone - Delete Section */}
+                        <div className="p-6 border-t border-red-200 bg-red-50">
+                            <h3 className="text-lg font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                <Trash2 className="w-5 h-5" />
+                                Danger Zone
+                            </h3>
+                            <p className="text-sm text-red-600 mb-4">
+                                Deleting this supplier will also delete all associated products. This action cannot be undone.
+                            </p>
+                            {!confirmDelete ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmDelete(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 font-medium rounded-lg hover:bg-red-200 transition border border-red-300"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete Supplier
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!supplier?.id) return;
+                                            setDeleting(true);
+                                            try {
+                                                const result = await deleteSupplier(supplier.id);
+                                                if (result.success) {
+                                                    onSuccess();
+                                                    onClose();
+                                                } else {
+                                                    setError(result.error || 'Failed to delete supplier');
+                                                }
+                                            } catch (err) {
+                                                setError('Failed to delete supplier');
+                                            } finally {
+                                                setDeleting(false);
+                                                setConfirmDelete(false);
+                                            }
+                                        }}
+                                        disabled={deleting}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                                    >
+                                        {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        {deleting ? 'Deleting...' : 'Yes, Delete Forever'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmDelete(false)}
+                                        disabled={deleting}
+                                        className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Footer */}
