@@ -486,14 +486,6 @@ export default function ProductsPage() {
                   )}
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {product.matchCount} matches
-                  </div>
-                </div>
-
                 {/* Actions */}
                 <div className="flex gap-2">
                   {/* Share Button */}
