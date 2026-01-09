@@ -16,6 +16,29 @@ export async function createSupplier(data: {
     try {
         const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
+        // Check for duplicate: same email OR same company in same category+subcategory
+        const existingSupplier = await prisma.suppliers.findFirst({
+            where: {
+                OR: [
+                    { email: { equals: email, mode: 'insensitive' } },
+                    {
+                        AND: [
+                            { companyName: { equals: companyName, mode: 'insensitive' } },
+                            { category: { equals: category || '', mode: 'insensitive' } },
+                            { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        if (existingSupplier) {
+            if (existingSupplier.email?.toLowerCase() === email.toLowerCase()) {
+                return { success: false, error: 'A supplier with this email already exists.' };
+            }
+            return { success: false, error: 'A supplier with this company name already exists in this category/subcategory.' };
+        }
+
         // Create Supplier as a standalone record (no user account needed)
         const newSupplier = await prisma.suppliers.create({
             data: {
