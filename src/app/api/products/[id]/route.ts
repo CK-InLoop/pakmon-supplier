@@ -78,6 +78,8 @@ export async function PATCH(
     const tagsString = formData.get('tags') as string;
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
     const youtubeUrl = formData.get('youtubeUrl') as string | null;
+    const priceRange = formData.get('priceRange') as string | null;
+    const capacity = formData.get('capacity') as string | null;
 
     const existingProduct = await prisma.products.findUnique({
       where: { id },
@@ -178,6 +180,8 @@ export async function PATCH(
         description: description || existingProduct.description,
         specifications: specs !== null ? specs : existingProduct.specifications,
         youtubeUrl: youtubeUrl !== null ? (youtubeUrl || null) : existingProduct.youtubeUrl,
+        priceRange: priceRange !== null ? (priceRange || null) : existingProduct.priceRange,
+        capacity: capacity !== null ? (capacity || null) : existingProduct.capacity,
         images,
         pdfFiles,
         tags: tags.length > 0 ? tags : existingProduct.tags,

@@ -14,6 +14,8 @@ interface Product {
   images: string[];
   pdfFiles: string[];
   youtubeUrl?: string;
+  priceRange?: string;
+  capacity?: string;
   signedImageUrls?: string[];
   signedFileUrls?: string[];
 }
@@ -32,6 +34,8 @@ export default function EditProductPage() {
     specs: '',
     tags: '',
     youtubeUrl: '',
+    priceRange: '',
+    capacity: '',
   });
   const [newImages, setNewImages] = useState<File[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -132,6 +136,8 @@ export default function EditProductPage() {
         specs: data.product.specifications || '',
         tags: data.product.tags?.join(', ') || '',
         youtubeUrl: data.product.youtubeUrl || '',
+        priceRange: data.product.priceRange || '',
+        capacity: data.product.capacity || '',
       });
     } catch (err: any) {
       setError(err.message);
@@ -195,6 +201,8 @@ export default function EditProductPage() {
       formDataToSend.append('specs', formData.specs);
       formDataToSend.append('tags', formData.tags);
       formDataToSend.append('youtubeUrl', formData.youtubeUrl);
+      formDataToSend.append('priceRange', formData.priceRange);
+      formDataToSend.append('capacity', formData.capacity);
 
       newImages.forEach((image) => {
         formDataToSend.append('newImages', image);
@@ -400,6 +408,38 @@ export default function EditProductPage() {
             <p className="text-sm text-gray-500 mt-1">
               Add a YouTube video showcasing your product (optional)
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price Range
+              </label>
+              <input
+                type="text"
+                value={formData.priceRange}
+                onChange={(e) =>
+                  setFormData({ ...formData, priceRange: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                placeholder="e.g., ₹50,000 - ₹1,00,000"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Capacity
+              </label>
+              <input
+                type="text"
+                value={formData.capacity}
+                onChange={(e) =>
+                  setFormData({ ...formData, capacity: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                placeholder="e.g., 2000 L/day"
+              />
+            </div>
           </div>
         </div>
 
