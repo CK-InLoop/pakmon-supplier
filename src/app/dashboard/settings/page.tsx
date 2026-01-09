@@ -1,109 +1,36 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { User, Building2, Phone, MapPin } from 'lucide-react';
-
-interface Supplier {
-  id: string;
-  name: string;
-  email: string;
-  companyName?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
-  verified: boolean;
-  createdAt: string;
-}
+import { User, Shield, Bell, Moon, Sun } from 'lucide-react';
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [supplier, setSupplier] = useState<Supplier | null>(null);
-  const [formData, setFormData] = useState({
-    companyName: '',
-    phone: '',
-    address: '',
-    description: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfile();
+    fetchUserInfo();
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchUserInfo = async () => {
     try {
-      const response = await fetch('/api/supplier/profile');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        if (data.redirect) {
-          router.push(data.redirect);
-          return;
-        }
-        throw new Error(data.error || 'Failed to load profile');
+      const response = await fetch('/api/auth/session');
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data?.user || null);
       }
-
-      setSupplier(data.supplier);
-      setFormData({
-        companyName: data.supplier.companyName || '',
-        phone: data.supplier.phone || '',
-        address: data.supplier.address || '',
-        description: data.supplier.description || '',
-      });
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setFetchLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess(false);
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/supplier/profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
-
-      setSupplier(data.supplier);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Failed to fetch user info:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetchLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">Loading settings...</div>
-      </div>
-    );
-  }
-
-  if (!supplier) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">Failed to load profile</div>
       </div>
     );
   }
@@ -113,162 +40,108 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600 mt-2">
-          Manage your account and company information
+          Manage your account preferences
         </p>
       </div>
 
-      {/* Account Info (Read-only) */}
+      {/* Account Info */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <User className="w-5 h-5" />
           Account Information
         </h2>
-        
+
         <div className="space-y-4">
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <User className="w-5 h-5 text-gray-500" />
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-green-600" />
+            </div>
             <div>
               <p className="text-sm text-gray-500">Name</p>
-              <p className="font-medium text-gray-900">{supplier.name}</p>
+              <p className="font-medium text-gray-900">{user?.name || 'Admin User'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-5 h-5 text-gray-500">✉️</div>
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-xl">✉️</span>
+            </div>
             <div>
               <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-gray-900">{supplier.email}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-5 h-5 text-gray-500">📅</div>
-            <div>
-              <p className="text-sm text-gray-500">Member Since</p>
-              <p className="font-medium text-gray-900">
-                {new Date(supplier.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
+              <p className="font-medium text-gray-900">{user?.email || 'admin@example.com'}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Company Information (Editable) */}
+      {/* Preferences */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
-          Company Information
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <Shield className="w-5 h-5" />
+          Preferences
         </h2>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-            Profile updated successfully!
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Building2 className="w-4 h-4" />
-                Company Name
+        <div className="space-y-4">
+          {/* Notifications Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <div>
+                <p className="font-medium text-gray-900">Email Notifications</p>
+                <p className="text-sm text-gray-500">Receive email alerts for new inquiries</p>
               </div>
-            </label>
-            <input
-              type="text"
-              value={formData.companyName}
-              onChange={(e) =>
-                setFormData({ ...formData, companyName: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-              placeholder="ABC Dairy Products Ltd."
-            />
+            </div>
+            <button
+              onClick={() => setNotifications(!notifications)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications ? 'bg-green-600' : 'bg-gray-300'
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+              />
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Phone className="w-4 h-4" />
-                Phone Number
+          {/* Dark Mode Toggle (placeholder) */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              {darkMode ? (
+                <Moon className="w-5 h-5 text-gray-600" />
+              ) : (
+                <Sun className="w-5 h-5 text-gray-600" />
+              )}
+              <div>
+                <p className="font-medium text-gray-900">Dark Mode</p>
+                <p className="text-sm text-gray-500">Switch to dark theme (coming soon)</p>
               </div>
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-              placeholder="+1 234 567 8900"
-            />
+            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              disabled
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors opacity-50 cursor-not-allowed ${darkMode ? 'bg-green-600' : 'bg-gray-300'
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+              />
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <div className="flex items-center gap-2 mb-1">
-                <MapPin className="w-4 h-4" />
-                Business Address
-              </div>
-            </label>
-            <textarea
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-              placeholder="123 Main Street, City, State, ZIP"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Company Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-              placeholder="Tell us about your company and what products you offer..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving Changes...' : 'Save Changes'}
-          </button>
-        </form>
+        </div>
       </div>
 
-      {/* Account Status */}
+      {/* Admin Status */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-xl p-6 text-white">
-        <h2 className="text-xl font-bold mb-2">Account Status</h2>
+        <h2 className="text-xl font-bold mb-2">Admin Account</h2>
         <div className="flex items-center gap-2">
           <div className="bg-white/20 rounded-full p-2">
-            {supplier.verified ? '✓' : '⏳'}
+            ✓
           </div>
           <div>
-            <p className="font-semibold">
-              {supplier.verified ? 'Verified Account' : 'Verification Pending'}
-            </p>
+            <p className="font-semibold">Full Access</p>
             <p className="text-sm text-green-100">
-              {supplier.verified
-                ? 'Your account is verified and active'
-                : 'Please verify your email address'}
+              You have administrator privileges to manage all suppliers and products
             </p>
           </div>
         </div>
@@ -276,4 +149,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
