@@ -102,32 +102,6 @@ export default function SettingsPage() {
               />
             </button>
           </div>
-
-          {/* Dark Mode Toggle (placeholder) */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              {darkMode ? (
-                <Moon className="w-5 h-5 text-gray-600" />
-              ) : (
-                <Sun className="w-5 h-5 text-gray-600" />
-              )}
-              <div>
-                <p className="font-medium text-gray-900">Dark Mode</p>
-                <p className="text-sm text-gray-500">Switch to dark theme (coming soon)</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              disabled
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors opacity-50 cursor-not-allowed ${darkMode ? 'bg-green-600' : 'bg-gray-300'
-                }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-              />
-            </button>
-          </div>
         </div>
       </div>
 
