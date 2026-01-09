@@ -122,6 +122,52 @@ export async function PATCH(
       }
     }
 
+    // Handle PDF files
+    let pdfFiles = [...existingProduct.pdfFiles];
+
+    // Check for pre-uploaded PDF URLs (new flow)
+    const fileUrlsJson = formData.get('fileUrls') as string | null;
+    if (fileUrlsJson) {
+      try {
+        const newFileUrls = JSON.parse(fileUrlsJson);
+        pdfFiles = [...pdfFiles, ...newFileUrls];
+      } catch (e) {
+        console.error('Error parsing fileUrls:', e);
+      }
+    }
+
+    // Upload new PDFs directly (legacy flow)
+    const newFiles = formData.getAll('newFiles') as File[];
+    for (const file of newFiles) {
+      if (file.size > 0) {
+        try {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const url = await uploadToAzure(buffer, file.name, file.type, session.user.id, id);
+          pdfFiles.push(url);
+        } catch (e: any) {
+          console.error('Azure PDF upload failed in PATCH:', e.message);
+          return NextResponse.json(
+            { error: `Failed to upload PDF to Azure: ${e.message}` },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
+    // Handle PDF deletions
+    const deletedFiles = formData.get('deletedFiles') as string;
+    if (deletedFiles) {
+      const filesToDelete = deletedFiles.split(',');
+      for (const fileUrl of filesToDelete) {
+        try {
+          await deleteFromAzure(fileUrl);
+        } catch (e) {
+          console.warn('Azure PDF delete failed:', e);
+        }
+        pdfFiles = pdfFiles.filter(url => url !== fileUrl);
+      }
+    }
+
     const updatedProduct = await prisma.products.update({
       where: { id },
       data: {
@@ -133,6 +179,7 @@ export async function PATCH(
         specifications: specs !== null ? specs : existingProduct.specifications,
         youtubeUrl: youtubeUrl !== null ? (youtubeUrl || null) : existingProduct.youtubeUrl,
         images,
+        pdfFiles,
         tags: tags.length > 0 ? tags : existingProduct.tags,
       },
     });
