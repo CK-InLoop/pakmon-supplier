@@ -119,7 +119,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const otherNav = [
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
