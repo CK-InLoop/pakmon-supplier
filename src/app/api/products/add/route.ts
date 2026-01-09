@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     // Create product in database
     const product = await prisma.products.create({
       data: {
-        supplierId: supplier.id,
+        supplier: { connect: { id: supplier.id } },
         name: title,
         title,
         shortDescription,
@@ -166,9 +166,8 @@ export async function POST(req: NextRequest) {
         youtubeUrl: youtubeUrl || undefined,
         priceRange: priceRange || undefined,
         capacity: capacity || undefined,
-        category,
+        category: '',  // Required field - keeping empty since removed from UI
         tags,
-
       },
     });
 

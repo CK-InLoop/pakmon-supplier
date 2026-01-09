@@ -22,7 +22,6 @@ export default function AddProductPage() {
     shortDescription: '',
     fullDescription: '',
     specifications: '',
-    category: 'Dairy Equipment',
     tags: '',
     priceRange: '',
     capacity: '',
@@ -237,7 +236,6 @@ export default function AddProductPage() {
       formDataToSend.append('shortDescription', formData.shortDescription);
       formDataToSend.append('fullDescription', formData.fullDescription);
       formDataToSend.append('specifications', formData.specifications);
-      formDataToSend.append('category', formData.category);
       formDataToSend.append('tags', formData.tags);
       formDataToSend.append('priceRange', formData.priceRange);
       formDataToSend.append('capacity', formData.capacity);
@@ -602,29 +600,6 @@ export default function AddProductPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               placeholder="e.g., dairy, cream, organic"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
-            >
-              <option value="Dairy Equipment">Dairy Equipment</option>
-              <option value="Processing Machinery">Processing Machinery</option>
-              <option value="Storage Solutions">Storage Solutions</option>
-              <option value="Quality Control">Quality Control</option>
-              <option value="Ingredients Suppliers">Ingredients Suppliers</option>
-              <option value="Lab Equipment Suppliers">Lab Equipment Suppliers</option>
-              <option value="Packaging Material Suppliers">Packaging Material Suppliers</option>
-              <option value="Lab Instruments">Lab Instruments</option>
-              <option value="Other">Other</option>
-            </select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
