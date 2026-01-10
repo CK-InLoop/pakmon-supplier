@@ -174,7 +174,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       {category.subCategories.map((sub) => {
                         if (sub.isHeading) {
                           return (
-                            <div key={sub.id} className="pt-3 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <div key={sub.id} className="pt-3 pb-1 text-xs font-bold text-green-600 uppercase tracking-wider">
                               {sub.name}
                             </div>
                           );
