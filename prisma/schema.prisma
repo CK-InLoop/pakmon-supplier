@@ -40,6 +40,35 @@ model CarouselImages {
   @@map("carousel_images")
 }
 
+// Categories for organizing suppliers and products
+model Category {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String        @unique
+  icon          String        @default("Package")
+  order         Int           @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now()) @db.Date
+  updatedAt     DateTime      @updatedAt @db.Date
+  subCategories SubCategory[]
+
+  @@map("categories")
+}
+
+// SubCategories within a category
+model SubCategory {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId String   @db.ObjectId
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String
+  order      Int      @default(0)
+  isHeading  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Date
+  updatedAt  DateTime @updatedAt @db.Date
+
+  @@map("subcategories")
+}
+
 // ============================================
 // Supplier Portal Models (Existing + Enhanced)
 // ============================================

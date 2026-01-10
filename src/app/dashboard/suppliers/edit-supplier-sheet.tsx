@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { X, Loader2, Image as ImageIcon, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { updateSupplier, deleteSupplier } from '@/app/actions/suppliers';
+import { getCategories } from '@/app/actions/categories';
 
 interface Supplier {
     id: string;
@@ -32,86 +33,42 @@ interface UploadedImage {
     error?: string;
 }
 
+interface SubCategory {
+    id: string;
+    name: string;
+    isHeading: boolean;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    subCategories: SubCategory[];
+}
+
 export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: EditSupplierSheetProps) {
     const [loading, setLoading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState<UploadedImage | null>(null);
+    const [categories, setCategories] = useState<Category[]>([]);
 
-    const categories = {
-        'OIL & GAS Piping Systems': [
-            { name: 'PROJECTS', isHeading: true },
-            { name: 'NG FACTORY PIPELINES AND SKIDS INSTALLATIONS' },
-            { name: 'LNG STORAGE TANKS AND SYSTEM INSTALLATIONS' },
-            { name: 'NITROGEN & OXYGEN GENERATORS' },
-            { name: 'PRODUCTS', isHeading: true },
-            { name: 'Pipes' },
-            { name: 'Valves & Fittings' },
-            { name: 'Flexible connections' },
-            { name: 'Filters' },
-            { name: 'Pressure Regulators' },
-            { name: 'Gas Meters' },
-            { name: 'Solenoid valves' },
-            { name: 'GAS SKIDS / PRMS' },
-            { name: 'LNG/LPG STORAGE TANKS and systems' }
-        ],
-        'Dairy & Food': [
-            { name: 'PROJECTS', isHeading: true },
-            { name: 'DAIRY PLANTS' },
-            { name: 'WATER TREATMENT PLANTS' },
-            { name: 'CIP PLANTS' },
-            { name: 'PILOT PLANT / MINI PLANT' },
-            { name: 'FACTORY RELOCATIONS' },
-            { name: 'SS STORAGE TANKS & MIXERS' },
-            { name: 'CLEANING STATIONS' },
-            { name: 'IBC DOSING STATIONS' },
-            { name: 'PLATFORMS' },
-            { name: 'SS PIPINGS' },
-            { name: 'PRODUCTS', isHeading: true },
-            { name: 'SS DRAINS' },
-            { name: 'SS Valve & Fittings' },
-            { name: 'Flexible connections' },
-            { name: 'pumps' }
-        ],
-        'Industrial': [
-            { name: 'PROJECTS', isHeading: true },
-            { name: 'HOME & PERSONAL CARE PLANTS' },
-            { name: 'SULPHONATION PLANT' },
-            { name: 'LAB PLANT' },
-            { name: 'TANK FARMS' },
-            { name: 'UTILITY & pipings' },
-            { name: 'READY FACTORIES TO BUY FOR BUSINESS INVESTMENTS' },
-            { name: 'PRODUCTS', isHeading: true },
-            { name: 'FANS' },
-            { name: 'NITROGEN / OXYGEN GENERATORS' },
-            { name: 'BOILERS' },
-            { name: 'PUMPS' },
-            { name: 'FILTRATION SYSTEMS' },
-            { name: 'LIQUID DOSING SYSTEMS' }
-        ],
-        'Consulting & Services': [
-            { name: 'SERVICES', isHeading: true },
-            { name: 'AMC contracts' },
-            { name: 'FAN Balance and Monitoring' },
-            { name: 'Thermal inspections' },
-            { name: 'Vibration checks' },
-            { name: 'Central Lubrication system' },
-            { name: 'Tightening checks' },
-            { name: '6S Trainings' },
-            { name: 'TPM' },
-            { name: 'Focused Improvements' },
-            { name: 'Autonomus Maintenance' },
-            { name: 'Planned Maintenance' },
-            { name: 'Energy Savings RISK ASSESMENT' },
-            { name: 'COST Reductions' },
-            { name: 'Early Equipment Management' },
-            { name: 'HSE Risk Assessments and Predictions' },
-            { name: 'Efficiency monitoring-FOL' },
-            { name: 'Low cost Automations' },
-            { name: 'SUPPLY CHAIN - RAW MATERIALS' }
-        ]
-    };
+    // Fetch categories from database
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const result = await getCategories();
+                if (result.success && result.categories) {
+                    setCategories(result.categories as Category[]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch categories:', err);
+            }
+        };
+        if (isOpen) {
+            fetchCategories();
+        }
+    }, [isOpen]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -123,23 +80,28 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
         subCategory: '',
     });
 
+    // Get subcategories for selected category
+    const getSubCategories = () => {
+        const selectedCategory = categories.find(c => c.name === formData.category);
+        return selectedCategory?.subCategories || [];
+    };
+
     // Update form when supplier changes
     useEffect(() => {
-        if (supplier) {
-            // Find matching category key (case-insensitive)
-            const categoryKeys = Object.keys(categories);
-            const matchedCategory = categoryKeys.find(
-                key => key.toLowerCase() === (supplier.category || '').toLowerCase()
-            ) || supplier.category || '';
+        if (supplier && categories.length > 0) {
+            // Find matching category (case-insensitive)
+            const matchedCategory = categories.find(
+                cat => cat.name.toLowerCase() === (supplier.category || '').toLowerCase()
+            );
+            const matchedCategoryName = matchedCategory?.name || supplier.category || '';
 
-            // Find matching subcategory name (case-insensitive)
+            // Find matching subcategory (case-insensitive)
             let matchedSubCategory = supplier.subCategory || '';
-            if (matchedCategory && categories[matchedCategory as keyof typeof categories]) {
-                const subCatList = categories[matchedCategory as keyof typeof categories];
-                const found = subCatList.find(
+            if (matchedCategory) {
+                const foundSub = matchedCategory.subCategories.find(
                     sub => sub.name.toLowerCase() === (supplier.subCategory || '').toLowerCase()
                 );
-                if (found) matchedSubCategory = found.name;
+                if (foundSub) matchedSubCategory = foundSub.name;
             }
 
             setFormData({
@@ -148,7 +110,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                 email: supplier.email || '',
                 phone: supplier.phone || '',
                 address: supplier.address || '',
-                category: matchedCategory,
+                category: matchedCategoryName,
                 subCategory: matchedSubCategory,
             });
 
@@ -164,7 +126,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                 setImage(null);
             }
         }
-    }, [supplier]);
+    }, [supplier, categories]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -491,8 +453,8 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                                                 >
                                                     <option value="">Select Category</option>
-                                                    {Object.keys(categories).map(cat => (
-                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -510,13 +472,13 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white disabled:bg-gray-50"
                                                 >
                                                     <option value="">Select Sub-category</option>
-                                                    {formData.category && categories[formData.category as keyof typeof categories].map(sub => (
+                                                    {getSubCategories().map(sub => (
                                                         sub.isHeading ? (
-                                                            <option key={sub.name} value="" disabled className="font-bold bg-gray-100">
+                                                            <option key={sub.id} value="" disabled className="font-bold bg-gray-100">
                                                                 ── {sub.name} ──
                                                             </option>
                                                         ) : (
-                                                            <option key={sub.name} value={sub.name}>{sub.name}</option>
+                                                            <option key={sub.id} value={sub.name}>{sub.name}</option>
                                                         )
                                                     ))}
                                                 </select>

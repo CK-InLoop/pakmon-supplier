@@ -12,8 +12,27 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  FolderTree
 } from 'lucide-react';
+import { getCategories } from '@/app/actions/categories';
+
+interface SubCategory {
+  id: string;
+  name: string;
+  order: number;
+  isHeading: boolean;
+  isActive: boolean;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  order: number;
+  isActive: boolean;
+  subCategories: SubCategory[];
+}
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -24,6 +43,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name?: string; email?: string } | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   // Fetch user info from API to get the latest name/email
   useEffect(() => {
@@ -41,105 +62,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     fetchUserInfo();
   }, [pathname]); // Refetch when navigating (e.g., after updating settings)
 
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const result = await getCategories();
+        if (result.success && result.categories) {
+          setCategories(result.categories as Category[]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   ];
 
-  const categories = [
-    {
-      name: 'OIL & GAS Piping Systems',
-      icon: Package,
-      subCategories: [
-        { name: 'PROJECTS', isHeading: true },
-        { name: 'NG FACTORY PIPELINES AND SKIDS INSTALLATIONS' },
-        { name: 'LNG STORAGE TANKS AND SYSTEM INSTALLATIONS' },
-        { name: 'NITROGEN & OXYGEN GENERATORS' },
-        { name: 'PRODUCTS', isHeading: true },
-        { name: 'Pipes' },
-        { name: 'Valves & Fittings' },
-        { name: 'Flexible connections' },
-        { name: 'Filters' },
-        { name: 'Pressure Regulators' },
-        { name: 'Gas Meters' },
-        { name: 'Solenoid valves' },
-        { name: 'GAS SKIDS / PRMS' },
-        { name: 'LNG/LPG STORAGE TANKS and systems' }
-      ]
-    },
-    {
-      name: 'Dairy & Food',
-      icon: Package,
-      subCategories: [
-        { name: 'PROJECTS', isHeading: true },
-        { name: 'DAIRY PLANTS' },
-        { name: 'WATER TREATMENT PLANTS' },
-        { name: 'CIP PLANTS' },
-        { name: 'PILOT PLANT / MINI PLANT' },
-        { name: 'FACTORY RELOCATIONS' },
-        { name: 'SS STORAGE TANKS & MIXERS' },
-        { name: 'CLEANING STATIONS' },
-        { name: 'IBC DOSING STATIONS' },
-        { name: 'PLATFORMS' },
-        { name: 'SS PIPINGS' },
-        { name: 'PRODUCTS', isHeading: true },
-        { name: 'SS DRAINS' },
-        { name: 'SS Valve & Fittings' },
-        { name: 'Flexible connections' },
-        { name: 'pumps' }
-      ]
-    },
-    {
-      name: 'Industrial',
-      icon: Package,
-      subCategories: [
-        { name: 'PROJECTS', isHeading: true },
-        { name: 'HOME & PERSONAL CARE PLANTS' },
-        { name: 'SULPHONATION PLANT' },
-        { name: 'LAB PLANT' },
-        { name: 'TANK FARMS' },
-        { name: 'UTILITY & pipings' },
-        { name: 'READY FACTORIES TO BUY FOR BUSINESS INVESTMENTS' },
-        { name: 'PRODUCTS', isHeading: true },
-        { name: 'FANS' },
-        { name: 'NITROGEN / OXYGEN GENERATORS' },
-        { name: 'BOILERS' },
-        { name: 'PUMPS' },
-        { name: 'FILTRATION SYSTEMS' },
-        { name: 'LIQUID DOSING SYSTEMS' }
-      ]
-    },
-    {
-      name: 'Consulting & Services',
-      icon: Package,
-      subCategories: [
-        { name: 'SERVICES', isHeading: true },
-        { name: 'AMC contracts' },
-        { name: 'FAN Balance and Monitoring' },
-        { name: 'Thermal inspections' },
-        { name: 'Vibration checks' },
-        { name: 'Central Lubrication system' },
-        { name: 'Tightening checks' },
-        { name: '6S Trainings' },
-        { name: 'TPM' },
-        { name: 'Focused Improvements' },
-        { name: 'Autonomus Maintenance' },
-        { name: 'Planned Maintenance' },
-        { name: 'Energy Savings RISK ASSESMENT' },
-        { name: 'COST Reductions' },
-        { name: 'Early Equipment Management' },
-        { name: 'HSE Risk Assessments and Predictions' },
-        { name: 'Efficiency monitoring-FOL' },
-        { name: 'Low cost Automations' },
-        { name: 'SUPPLY CHAIN - RAW MATERIALS' }
-      ]
-    }
-  ];
-
   const otherNav = [
+    { name: 'Categories', href: '/dashboard/categories', icon: FolderTree },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
-
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const toggleCategory = (name: string) => {
     setExpandedCategory(expandedCategory === name ? null : name);
@@ -205,16 +150,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
 
             {categories.map((category) => {
-              const Icon = category.icon;
+              // Use Package icon for all categories (icon field is for future use)
               const isExpanded = expandedCategory === category.name;
               return (
-                <div key={category.name} className="space-y-1">
+                <div key={category.id} className="space-y-1">
                   <button
                     onClick={() => toggleCategory(category.name)}
                     className={`pro-sidebar-item flex items-center justify-between w-full gap-3 ${isExpanded ? 'bg-gray-100' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      <Package className="w-5 h-5 flex-shrink-0" />
                       <span className="font-medium text-left flex-1">{category.name}</span>
                     </div>
                     {isExpanded ? (
@@ -229,7 +174,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       {category.subCategories.map((sub) => {
                         if (sub.isHeading) {
                           return (
-                            <div key={sub.name} className="pt-3 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <div key={sub.id} className="pt-3 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
                               {sub.name}
                             </div>
                           );
@@ -241,7 +186,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         return (
                           <Link
-                            key={sub.name}
+                            key={sub.id}
                             href={href}
                             onClick={() => setSidebarOpen(false)}
                             className={`block py-2 text-sm text-gray-600 hover:text-green-600 transition-colors ${isActive ? 'text-green-600 font-semibold' : ''}`}

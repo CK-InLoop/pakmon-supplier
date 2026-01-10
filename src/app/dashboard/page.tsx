@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, CheckCircle, Clock, TrendingUp, Building2, ImageIcon } from 'lucide-react';
+import { Package, CheckCircle, Clock, TrendingUp, Building2, ImageIcon, FolderTree } from 'lucide-react';
 
 interface Stats {
   totalProducts?: number;
@@ -11,6 +11,7 @@ interface Stats {
   products?: { total: number };
   suppliers?: { total: number };
   carouselImages?: number;
+  categoriesCount?: number;
 }
 
 export default function DashboardPage() {
@@ -23,17 +24,20 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const [analyticsResponse, carouselResponse] = await Promise.all([
+      const [analyticsResponse, carouselResponse, categoriesResponse] = await Promise.all([
         fetch('/api/analytics'),
         fetch('/api/carousel/count'),
+        fetch('/api/categories/count'),
       ]);
       const analyticsData = await analyticsResponse.json();
       const carouselData = await carouselResponse.json();
+      const categoriesData = await categoriesResponse.json();
 
       // Handle both Admin (nested) and Supplier (flat) structures
       setStats({
         ...analyticsData.summary,
         carouselImages: carouselData.count || 0,
+        categoriesCount: categoriesData.count || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -123,6 +127,22 @@ export default function DashboardPage() {
             ...total matches card...
           </Link>
         */}
+        </Link>
+
+        <Link href="/dashboard/categories" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Categories
+              </p>
+              <p className="text-3xl font-bold text-purple-600 mt-2">
+                {stats?.categoriesCount || 0}
+              </p>
+            </div>
+            <div className="bg-purple-100 rounded-full p-3">
+              <FolderTree className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
         </Link>
       </div>
 
