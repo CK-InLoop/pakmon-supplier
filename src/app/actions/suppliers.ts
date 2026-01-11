@@ -16,11 +16,18 @@ export async function createSupplier(data: {
     try {
         const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
-        // Check for duplicate: same email OR same company in same category+subcategory
+        // Check for duplicate: same email in same subcategory OR same company in same category+subcategory
         const existingSupplier = await prisma.suppliers.findFirst({
             where: {
                 OR: [
-                    { email: { equals: email, mode: 'insensitive' } },
+                    // Same email within the same subcategory
+                    {
+                        AND: [
+                            { email: { equals: email, mode: 'insensitive' } },
+                            { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
+                        ]
+                    },
+                    // Same company name within the same category+subcategory
                     {
                         AND: [
                             { companyName: { equals: companyName, mode: 'insensitive' } },
@@ -33,8 +40,9 @@ export async function createSupplier(data: {
         });
 
         if (existingSupplier) {
-            if (existingSupplier.email?.toLowerCase() === email.toLowerCase()) {
-                return { success: false, error: 'A supplier with this email already exists.' };
+            if (existingSupplier.email?.toLowerCase() === email.toLowerCase() &&
+                existingSupplier.subCategory?.toLowerCase() === (subCategory || '').toLowerCase()) {
+                return { success: false, error: 'A supplier with this email already exists in this subcategory.' };
             }
             return { success: false, error: 'A supplier with this company name already exists in this category/subcategory.' };
         }
