@@ -16,35 +16,18 @@ export async function createSupplier(data: {
     try {
         const { name, companyName, email, phone, address, category, subCategory, profileImage } = data;
 
-        // Check for duplicate: same email in same subcategory OR same company in same category+subcategory
+        // Check for duplicate: same company name in the same subcategory (email duplicates are allowed)
         const existingSupplier = await prisma.suppliers.findFirst({
             where: {
-                OR: [
-                    // Same email within the same subcategory
-                    {
-                        AND: [
-                            { email: { equals: email, mode: 'insensitive' } },
-                            { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
-                        ]
-                    },
-                    // Same company name within the same category+subcategory
-                    {
-                        AND: [
-                            { companyName: { equals: companyName, mode: 'insensitive' } },
-                            { category: { equals: category || '', mode: 'insensitive' } },
-                            { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
-                        ]
-                    }
+                AND: [
+                    { companyName: { equals: companyName, mode: 'insensitive' } },
+                    { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
                 ]
             }
         });
 
         if (existingSupplier) {
-            if (existingSupplier.email?.toLowerCase() === email.toLowerCase() &&
-                existingSupplier.subCategory?.toLowerCase() === (subCategory || '').toLowerCase()) {
-                return { success: false, error: 'A supplier with this email already exists in this subcategory.' };
-            }
-            return { success: false, error: 'A supplier with this company name already exists in this category/subcategory.' };
+            return { success: false, error: 'A supplier with this company name already exists in this subcategory.' };
         }
 
         // Create Supplier as a standalone record (no user account needed)
