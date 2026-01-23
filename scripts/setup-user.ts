@@ -17,8 +17,8 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 // Fixed credentials - use these to login
-const ADMIN_EMAIL = 'admin@pakmon.com';
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_EMAIL = 'sales@pakmon.com';
+const ADMIN_PASSWORD = 'PakmonAdmin@123';
 const ADMIN_NAME = 'Pakmon Admin';
 
 async function main() {
