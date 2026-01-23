@@ -7,8 +7,8 @@
  * Run with: npx tsx scripts/setup-user.ts
  * 
  * Login Credentials:
- *   Email: admin@pakmon.com
- *   Password: admin123
+ *   Email: sales@pakmon.com
+ *   Password: PakmonSales@123
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
 
 // Fixed credentials - use these to login
 const ADMIN_EMAIL = 'sales@pakmon.com';
-const ADMIN_PASSWORD = 'PakmonAdmin@123';
+const ADMIN_PASSWORD = 'PakmonSales@123';
 const ADMIN_NAME = 'Pakmon Admin';
 
 async function main() {
