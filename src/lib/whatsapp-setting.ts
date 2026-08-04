@@ -13,7 +13,7 @@ export function normalizeWhatsAppPhone(input: string) {
     throw new Error('Phone number must contain 8 to 15 digits including the country code.');
   }
 
-  return { phone: `+${digits}`, digits };
+  return { phone: value, digits };
 }
 
 export function readWhatsAppPhone(value: unknown) {
