@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, Shield, Bell, Pencil, X, Check, Loader2 } from 'lucide-react';
+import { User, Shield, Bell, Pencil, X, Check, Loader2, Phone } from 'lucide-react';
+import { DEFAULT_WHATSAPP_PHONE } from '@/lib/whatsapp-setting';
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState(true);
@@ -13,6 +14,8 @@ export default function SettingsPage() {
   const [editingEmail, setEditingEmail] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [savedWhatsappPhone, setSavedWhatsappPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -30,6 +33,8 @@ export default function SettingsPage() {
         setUser(data?.user || null);
         setNameValue(data?.user?.name || 'Admin User');
         setEmailValue(data?.user?.email || 'admin@example.com');
+        setWhatsappPhone(data?.whatsappPhone || DEFAULT_WHATSAPP_PHONE);
+        setSavedWhatsappPhone(data?.whatsappPhone || DEFAULT_WHATSAPP_PHONE);
       } else {
         // Fallback to session API
         const sessionResponse = await fetch('/api/auth/session');
@@ -106,6 +111,36 @@ export default function SettingsPage() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to update email');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveWhatsApp = async () => {
+    if (!whatsappPhone.trim()) {
+      setError('WhatsApp phone number cannot be empty');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappPhone }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update WhatsApp number');
+
+      const savedPhone = data.whatsappPhone || whatsappPhone;
+      setWhatsappPhone(savedPhone);
+      setSavedWhatsappPhone(savedPhone);
+      setSuccess('WhatsApp phone number updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update WhatsApp number');
     } finally {
       setSaving(false);
     }
@@ -258,6 +293,45 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <Phone className="w-5 h-5" />
+          Website Contact
+        </h2>
+        <p className="mb-6 text-sm text-gray-600">
+          This number is used by the public website’s WhatsApp buttons and phone links.
+        </p>
+        <div className="rounded-lg bg-gray-50 p-4">
+          <label htmlFor="whatsapp-phone" className="block text-sm font-medium text-gray-900">
+            WhatsApp phone number
+          </label>
+          <p id="whatsapp-phone-help" className="mt-1 text-sm text-gray-500">
+            Include the country code, for example +971 56 433 2583.
+          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <input
+              id="whatsapp-phone"
+              name="whatsappPhone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              aria-describedby="whatsapp-phone-help"
+              value={whatsappPhone}
+              onChange={(event) => setWhatsappPhone(event.target.value)}
+              className="min-h-11 flex-1 rounded-lg border border-gray-300 px-3 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+            />
+            <button
+              type="button"
+              onClick={handleSaveWhatsApp}
+              disabled={saving || whatsappPhone.trim() === savedWhatsappPhone.trim()}
+              className="min-h-11 rounded-lg bg-green-600 px-5 font-semibold text-white transition hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving…</span> : 'Save phone number'}
+            </button>
           </div>
         </div>
       </div>
