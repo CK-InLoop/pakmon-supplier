@@ -1,56 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { sendPasswordResetEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+import { ensureDefaultAdmin, getDefaultAdminEmail } from '@/lib/default-admin';
+import { sendPasswordResetEmail } from '@/lib/email';
+import { hashResetToken, resetIdentifier } from '@/lib/password-reset';
+import { prisma } from '@/lib/prisma';
+
+const SUCCESS_MESSAGE = 'If an account exists for that email, password reset instructions have been sent.';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = String(body.email || '').trim().toLowerCase();
+    if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 });
 
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
-    }
+    const user = email === getDefaultAdminEmail()
+      ? await ensureDefaultAdmin()
+      : await prisma.users.findUnique({ where: { email } });
 
-    // Check if user exists
-    const user = await prisma.users.findUnique({
-      where: { email },
-    });
+    if (!user) return NextResponse.json({ message: SUCCESS_MESSAGE });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'No account found with this email address' },
-        { status: 404 }
-      );
-    }
-
-    // Generate reset token
-    const resetToken = randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour
-
-    // Store reset token in database
+    const rawToken = randomBytes(32).toString('hex');
+    const identifier = resetIdentifier(email);
+    await prisma.verification_tokens.deleteMany({ where: { identifier } });
     await prisma.verification_tokens.create({
       data: {
-        identifier: email,
-        token: resetToken,
-        expires,
+        identifier,
+        token: hashResetToken(rawToken),
+        expires: new Date(Date.now() + 60 * 60 * 1000),
       },
     });
 
-    // Send reset email
-    await sendPasswordResetEmail(email, resetToken, user.name || 'User');
-
-    return NextResponse.json({
-      message: 'Password reset instructions have been sent to your email',
-    });
+    await sendPasswordResetEmail(email, rawToken, user.name || 'User');
+    return NextResponse.json({ message: SUCCESS_MESSAGE });
   } catch (error) {
     console.error('Forgot password error:', error);
-    return NextResponse.json(
-      { error: 'An error occurred while processing your request' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Unable to send a reset email right now. Please try again.' }, { status: 500 });
   }
 }
-

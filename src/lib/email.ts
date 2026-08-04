@@ -2,12 +2,23 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function getAppUrl() {
+  const configuredUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const url = configuredUrl || (vercelUrl ? `https://${vercelUrl}` : 'http://localhost:3000');
+  return url.replace(/\/$/, '');
+}
+
+function getSender() {
+  return process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+}
+
 export async function sendVerificationEmail(email: string, token: string, name: string) {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify?token=${token}`;
+  const verificationUrl = `${getAppUrl()}/auth/verify?token=${token}`;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'info@pakmondairysolution.com',
+      from: getSender(),
       to: [email],
       subject: 'Verify Your Email - Pakmon Dairy Solutions Supplier Portal',
       html: `
@@ -63,11 +74,11 @@ export async function sendVerificationEmail(email: string, token: string, name: 
 }
 
 export async function sendPasswordResetEmail(email: string, token: string, name: string) {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+  const resetUrl = `${getAppUrl()}/auth/reset-password?token=${token}`;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'info@pakmondairysolution.com',
+      from: getSender(),
       to: [email],
       subject: 'Reset Your Password - Pakmon Dairy Solutions',
       html: `

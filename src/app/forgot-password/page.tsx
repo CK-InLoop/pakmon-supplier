@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('Password reset instructions have been sent to your email.');
+        setMessage(data.message || 'If an account exists for that email, password reset instructions have been sent.');
       } else {
         setError(data.error || 'Failed to send reset email');
       }
@@ -64,11 +64,14 @@ export default function ForgotPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <input
               type="email"
+              id="reset-email"
+              name="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

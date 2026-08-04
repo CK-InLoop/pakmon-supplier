@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { ensureDefaultAdmin, getDefaultAdminEmail } from '@/lib/default-admin';
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   providers: [
@@ -12,47 +13,35 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials');
+        if (!credentials?.email || !credentials?.password) return null;
+
+        const email = String(credentials.email).trim().toLowerCase();
+        const password = String(credentials.password);
+
+        try {
+          const user = email === getDefaultAdminEmail()
+            ? await ensureDefaultAdmin()
+            : await prisma.users.findUnique({
+                where: { email },
+                include: { suppliers: true },
+              });
+
+          if (!user?.password || !user.emailVerified) return null;
+          if (!await compare(password, user.password)) return null;
+
+          const supplierProfile = user.suppliers?.[0];
+          return {
+            id: user.id,
+            email: user.email || '',
+            name: user.name || '',
+            role: user.role,
+            companyName: supplierProfile?.companyName || undefined,
+            verified: true,
+          };
+        } catch (error) {
+          console.error('Credential authorization failed:', error);
+          return null;
         }
-
-
-        const user = await prisma.users.findUnique({
-          where: { email: credentials.email as string },
-          include: {
-            suppliers: true,
-          },
-        });
-
-        if (!user) {
-          throw new Error('No user found with this email');
-        }
-
-        if (!user.emailVerified) {
-          throw new Error('Please verify your email before logging in');
-        }
-
-        if (!user.password) {
-          throw new Error('Password not set for this account');
-        }
-
-        const isPasswordValid = await compare(credentials.password as string, user.password);
-
-        if (!isPasswordValid) {
-          throw new Error('Invalid password');
-        }
-
-        // Get the first supplier profile (if exists)
-        const supplierProfile = user.suppliers?.[0];
-
-        return {
-          id: user.id,
-          email: user.email || '',
-          name: user.name || '',
-          role: user.role,
-          companyName: supplierProfile?.companyName || undefined,
-          verified: !!user.emailVerified,
-        };
       },
     }),
   ],
@@ -69,7 +58,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.email = token.email as string;
@@ -80,19 +69,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       return session;
     },
   },
-  pages: {
-    signIn: '/login',
-    error: '/auth/error',
-  },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+  pages: { signIn: '/login', error: '/auth/error' },
+  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
+  jwt: { maxAge: 30 * 24 * 60 * 60 },
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   debug: process.env.NODE_ENV === 'development',
 });
-
-

@@ -3,11 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
@@ -38,16 +37,11 @@ function LoginContent() {
       });
 
       if (result?.error) {
-        // Provide more helpful error messages
-        if (result.error === 'Invalid password') {
-          setError('Invalid email or password. Please check your credentials and try again.');
-        } else if (result.error === 'No user found with this email') {
-          setError('No account found with this email address. Please sign up first.');
-        } else if (result.error === 'Please verify your email before logging in') {
-          setError('Please check your email and click the verification link before logging in.');
-        } else {
-          setError(result.error);
-        }
+        setError(
+          result.error === 'Configuration'
+            ? 'Login is temporarily unavailable. Please contact the site administrator.'
+            : 'Invalid email or password. Please check your credentials and try again.'
+        );
       } else {
         console.log('Login successful, redirecting to dashboard...');
         // Use window.location for a hard redirect to ensure session is properly set
@@ -84,11 +78,14 @@ function LoginContent() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <input
               type="email"
+              id="login-email"
+              name="email"
+              autoComplete="email"
               required
               value={formData.email}
               onChange={(e) =>
@@ -100,12 +97,15 @@ function LoginContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                id="login-password"
+                name="password"
+                autoComplete="current-password"
                 required
                 value={formData.password}
                 onChange={(e) =>
@@ -136,7 +136,7 @@ function LoginContent() {
           <div className="text-center mt-3">
             <Link
               href="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="inline-flex min-h-11 items-center text-sm text-blue-600 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
             >
               Forgot your password?
             </Link>

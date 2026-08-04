@@ -6,9 +6,7 @@
  * 
  * Run with: npx tsx scripts/setup-user.ts
  * 
- * Login Credentials:
- *   Email: sales@pakmon.com
- *   Password: PakmonSales@123
+ * Credentials are read from DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -16,12 +14,14 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// Fixed credentials - use these to login
-const ADMIN_EMAIL = 'sales@pakmon.com';
-const ADMIN_PASSWORD = 'PakmonSales@123';
+const ADMIN_EMAIL = (process.env.DEFAULT_ADMIN_EMAIL || 'ckakadiya1105@gmail.com').trim().toLowerCase();
+const ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD;
 const ADMIN_NAME = 'Pakmon Admin';
 
 async function main() {
+    if (!ADMIN_PASSWORD) {
+        throw new Error('DEFAULT_ADMIN_PASSWORD is required');
+    }
     console.log('🔧 Setting up fixed admin user...\n');
 
     try {
@@ -46,7 +46,7 @@ async function main() {
                 data: {
                     password: hashedPassword,
                     name: ADMIN_NAME,
-                    role: 'SUPPLIER',
+                    role: 'ADMIN',
                     emailVerified: new Date(),
                 },
             });
@@ -59,7 +59,7 @@ async function main() {
                     name: ADMIN_NAME,
                     email: ADMIN_EMAIL,
                     password: hashedPassword,
-                    role: 'SUPPLIER',
+                    role: 'ADMIN',
                     emailVerified: new Date(),
                 },
             });
@@ -104,6 +104,14 @@ async function main() {
             });
             console.log('✅ Supplier profile created');
         }
+
+        const bootstrapVersion = process.env.DEFAULT_ADMIN_BOOTSTRAP_VERSION || '1';
+        const markerKey = `auth.default-admin.${bootstrapVersion}`;
+        await prisma.systemSetting.upsert({
+            where: { key: markerKey },
+            update: { value: { email: ADMIN_EMAIL, initializedAt: new Date().toISOString() } },
+            create: { key: markerKey, value: { email: ADMIN_EMAIL, initializedAt: new Date().toISOString() } },
+        });
 
         console.log('\n========================================');
         console.log('🎉 SETUP COMPLETE!');

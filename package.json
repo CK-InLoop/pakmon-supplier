@@ -9,6 +9,7 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
+    "setup:admin": "tsx scripts/setup-user.ts",
     "postinstall": "prisma generate",
     "migrate:r2-urls": "tsx scripts/migrate-r2-urls.ts"
   },
