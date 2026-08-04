@@ -5,6 +5,14 @@ import { normalizeWhatsAppPhone, readWhatsAppPhone, WHATSAPP_SETTING_KEY } from 
 
 export const dynamic = 'force-dynamic';
 
+function normalizeEmail(input: unknown) {
+  const email = String(input || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Enter a valid email address.');
+  }
+  return email;
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -53,10 +61,20 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    let normalizedEmail: string | undefined;
     if (email) {
+      try {
+        normalizedEmail = normalizeEmail(email);
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : 'Enter a valid email address.' },
+          { status: 400 }
+        );
+      }
+
       const existingUser = await prisma.users.findFirst({
         where: {
-          email: { equals: String(email).trim().toLowerCase(), mode: 'insensitive' },
+          email: { equals: normalizedEmail, mode: 'insensitive' },
           NOT: { id: session.user.id },
         },
       });
@@ -65,12 +83,22 @@ export async function PATCH(req: NextRequest) {
 
     const updateData: { name?: string; email?: string } = {};
     if (name) updateData.name = String(name).trim();
-    if (email) updateData.email = String(email).trim().toLowerCase();
+    if (normalizedEmail) updateData.email = normalizedEmail;
 
     const updatedUser = Object.keys(updateData).length > 0
       ? await prisma.users.update({
           where: { id: session.user.id },
-          data: updateData,
+          data: {
+            ...updateData,
+            ...(normalizedEmail && {
+              suppliers: {
+                updateMany: {
+                  where: {},
+                  data: { email: normalizedEmail },
+                },
+              },
+            }),
+          },
           select: { id: true, name: true, email: true },
         })
       : await prisma.users.findUnique({

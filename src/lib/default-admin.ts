@@ -25,8 +25,18 @@ export async function ensureDefaultAdmin() {
     prisma.systemSetting.findUnique({ where: { key: markerKey } }),
   ]);
 
+  // The bootstrap account is created only once for each configured version.
+  // If its email is later changed in Settings, do not recreate the original
+  // email address the next time somebody tries to sign in with it.
+  if (marker) {
+    return prisma.users.findUnique({
+      where: { email },
+      include: { suppliers: true },
+    });
+  }
+
   let user = existingUser;
-  if (!user || !marker) {
+  if (!marker) {
     const passwordHash = await hash(password, 12);
     user = await prisma.users.upsert({
       where: { email },

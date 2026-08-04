@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, Shield, Bell, Pencil, X, Check, Loader2, Phone } from 'lucide-react';
+import { User, Shield, Bell, Pencil, X, Check, Loader2, Phone, Mail, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { DEFAULT_WHATSAPP_PHONE } from '@/lib/whatsapp-setting';
 
 export default function SettingsPage() {
@@ -19,6 +19,13 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     fetchUserInfo();
@@ -105,9 +112,11 @@ export default function SettingsPage() {
         throw new Error(data.error || 'Failed to update email');
       }
 
-      setUser(prev => prev ? { ...prev, email: emailValue } : null);
+      const savedEmail = data?.user?.email || emailValue.trim().toLowerCase();
+      setEmailValue(savedEmail);
+      setUser(prev => prev ? { ...prev, email: savedEmail } : null);
       setEditingEmail(false);
-      setSuccess('Email updated successfully!');
+      setSuccess('Email updated. Use the new email address the next time you sign in.');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to update email');
@@ -146,6 +155,44 @@ export default function SettingsPage() {
     }
   };
 
+  const handleChangePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordError('');
+    setSuccess('');
+
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const response = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to change password.');
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setSuccess('Password changed successfully. Use it the next time you sign in.');
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (error) {
+      setPasswordError(error instanceof Error ? error.message : 'Failed to change password.');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -164,13 +211,13 @@ export default function SettingsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        <div role="status" aria-live="polite" className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
           {success}
         </div>
       )}
@@ -243,7 +290,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 flex-1">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xl">✉️</span>
+                <Mail className="h-6 w-6 text-blue-600" />
               </div>
               <div className="flex-1">
                 <p className="text-sm text-gray-500">Email</p>
@@ -257,7 +304,10 @@ export default function SettingsPage() {
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEmail()}
                   />
                 ) : (
-                  <p className="font-medium text-gray-900">{user?.email || 'admin@example.com'}</p>
+                  <>
+                    <p className="font-medium text-gray-900">{user?.email || 'admin@example.com'}</p>
+                    <p className="mt-1 text-xs text-gray-500">This is your login and password-reset email.</p>
+                  </>
                 )}
               </div>
             </div>
@@ -295,6 +345,104 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <KeyRound className="w-5 h-5" />
+          Change Password
+        </h2>
+        <p className="mb-6 text-sm text-gray-600">
+          Confirm your current password before choosing a new one.
+        </p>
+
+        <form onSubmit={handleChangePassword} className="space-y-4" noValidate>
+          <div>
+            <label htmlFor="current-password" className="block text-sm font-medium text-gray-900">
+              Current password
+            </label>
+            <div className="relative mt-2">
+              <input
+                id="current-password"
+                name="currentPassword"
+                type={showCurrentPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                className="min-h-11 w-full rounded-lg border border-gray-300 px-3 pr-12 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(value => !value)}
+                aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                className="absolute inset-y-0 right-0 min-h-11 min-w-11 text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-500"
+              >
+                {showCurrentPassword ? <EyeOff className="mx-auto h-5 w-5" /> : <Eye className="mx-auto h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="new-password" className="block text-sm font-medium text-gray-900">
+                New password
+              </label>
+              <div className="relative mt-2">
+                <input
+                  id="new-password"
+                  name="newPassword"
+                  type={showNewPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  aria-describedby="new-password-help"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  className="min-h-11 w-full rounded-lg border border-gray-300 px-3 pr-12 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(value => !value)}
+                  aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                  className="absolute inset-y-0 right-0 min-h-11 min-w-11 text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-500"
+                >
+                  {showNewPassword ? <EyeOff className="mx-auto h-5 w-5" /> : <Eye className="mx-auto h-5 w-5" />}
+                </button>
+              </div>
+              <p id="new-password-help" className="mt-1 text-xs text-gray-500">Use at least 8 characters.</p>
+            </div>
+
+            <div>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-900">
+                Confirm new password
+              </label>
+              <input
+                id="confirm-password"
+                name="confirmPassword"
+                type={showNewPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                className="mt-2 min-h-11 w-full rounded-lg border border-gray-300 px-3 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+              />
+            </div>
+          </div>
+
+          {passwordError && (
+            <p role="alert" className="text-sm font-medium text-red-700">{passwordError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+            className="min-h-11 rounded-lg bg-green-600 px-5 font-semibold text-white transition hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {changingPassword ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Changing password…</span> : 'Change password'}
+          </button>
+        </form>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
