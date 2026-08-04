@@ -1,13 +1,7 @@
 import { Resend } from 'resend';
+import { getAppUrl } from '@/lib/app-url';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-function getAppUrl() {
-  const configuredUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
-  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
-  const url = configuredUrl || (vercelUrl ? `https://${vercelUrl}` : 'http://localhost:3000');
-  return url.replace(/\/$/, '');
-}
 
 function getSender() {
   return process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';

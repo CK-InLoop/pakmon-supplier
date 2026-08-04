@@ -3,6 +3,9 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { ensureDefaultAdmin, getDefaultAdminEmail } from '@/lib/default-admin';
+import { applyProductionAuthUrl } from '@/lib/app-url';
+
+applyProductionAuthUrl();
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   providers: [
