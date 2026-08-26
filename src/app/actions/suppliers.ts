@@ -3,6 +3,10 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
+function normalizeCategoryValue(value: string) {
+    return value.normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+}
+
 export async function createSupplier(data: {
     name: string;
     companyName: string;
@@ -21,7 +25,7 @@ export async function createSupplier(data: {
             where: {
                 AND: [
                     { companyName: { equals: companyName, mode: 'insensitive' } },
-                    { subCategory: { equals: subCategory || '', mode: 'insensitive' } }
+                    { subCategory: subCategory || '' }
                 ]
             }
         });
@@ -57,12 +61,9 @@ export async function createSupplier(data: {
 export async function getSuppliers(filters?: { category?: string; subCategory?: string }) {
     try {
         const where: any = {};
-        // Use case-insensitive matching for category and subCategory
+        // Category values come from database-backed navigation/dropdowns.
         if (filters?.category) {
-            where.category = { equals: filters.category, mode: 'insensitive' };
-        }
-        if (filters?.subCategory) {
-            where.subCategory = { equals: filters.subCategory, mode: 'insensitive' };
+            where.category = filters.category;
         }
 
         const suppliers = await prisma.suppliers.findMany({
@@ -75,7 +76,18 @@ export async function getSuppliers(filters?: { category?: string; subCategory?: 
             }
         });
 
-        return { success: true, suppliers };
+        // Prisma's MongoDB case-insensitive mode treats characters such as
+        // parentheses as regex syntax. Compare subcategories in application
+        // code so long/symbol-heavy names match literally while retaining
+        // compatibility with older records that differ only by case/spacing.
+        const filteredSuppliers = filters?.subCategory
+            ? suppliers.filter(supplier =>
+                supplier.subCategory &&
+                normalizeCategoryValue(supplier.subCategory) === normalizeCategoryValue(filters.subCategory!)
+            )
+            : suppliers;
+
+        return { success: true, suppliers: filteredSuppliers };
     } catch (error: any) {
         console.error('Error fetching suppliers:', error);
         return { success: false, error: error.message || 'Failed to fetch suppliers.' };

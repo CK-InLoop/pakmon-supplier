@@ -32,6 +32,8 @@ export default function SuppliersPage() {
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const searchParams = useSearchParams();
+    const selectedCategory = searchParams.get('category') || undefined;
+    const selectedSubCategory = searchParams.get('subCategory') || undefined;
 
     useEffect(() => {
         if (searchParams.get('add') === 'true') {
@@ -42,9 +44,10 @@ export default function SuppliersPage() {
     const fetchSuppliers = async () => {
         try {
             setLoading(true);
-            const category = searchParams.get('category') || undefined;
-            const subCategory = searchParams.get('subCategory') || undefined;
-            const result = await getSuppliers({ category, subCategory });
+            const result = await getSuppliers({
+                category: selectedCategory,
+                subCategory: selectedSubCategory,
+            });
             if (result.success && result.suppliers) {
                 setSuppliers(result.suppliers as any);
             }
@@ -224,6 +227,8 @@ export default function SuppliersPage() {
 
             <AddSupplierSheet
                 isOpen={isSheetOpen}
+                initialCategory={selectedCategory}
+                initialSubCategory={selectedSubCategory}
                 onClose={() => setIsSheetOpen(false)}
                 onSuccess={() => {
                     fetchSuppliers();

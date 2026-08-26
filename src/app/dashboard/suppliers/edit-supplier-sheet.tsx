@@ -450,7 +450,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                                     required
                                                     value={formData.category}
                                                     onChange={handleChange}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
+                                                    className="supplier-category-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white text-gray-900"
                                                 >
                                                     <option value="">Select Category</option>
                                                     {categories.map(cat => (
@@ -469,7 +469,7 @@ export function EditSupplierSheet({ isOpen, supplier, onClose, onSuccess }: Edit
                                                     value={formData.subCategory}
                                                     onChange={handleChange}
                                                     disabled={!formData.category}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white disabled:bg-gray-50"
+                                                    className="supplier-category-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
                                                 >
                                                     <option value="">Select Sub-category</option>
                                                     {getSubCategories().map(sub => (

@@ -7,6 +7,8 @@ import { getCategories } from '@/app/actions/categories';
 
 interface AddSupplierSheetProps {
     isOpen: boolean;
+    initialCategory?: string;
+    initialSubCategory?: string;
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -32,11 +34,26 @@ interface Category {
     subCategories: SubCategory[];
 }
 
-export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierSheetProps) {
+export function AddSupplierSheet({
+    isOpen,
+    initialCategory,
+    initialSubCategory,
+    onClose,
+    onSuccess,
+}: AddSupplierSheetProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState<UploadedImage | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        companyName: '',
+        email: '',
+        phone: '',
+        address: '',
+        category: '',
+        subCategory: '',
+    });
 
     // Fetch categories from database
     useEffect(() => {
@@ -55,15 +72,18 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
         }
     }, [isOpen]);
 
-    const [formData, setFormData] = useState({
-        name: '',
-        companyName: '',
-        email: '',
-        phone: '',
-        address: '',
-        category: '',
-        subCategory: '',
-    });
+    // Keep the sheet in the current sidebar context when it is opened from a
+    // category/subcategory page. The values come from the same database-backed
+    // navigation options, so they also remain safe for exact-match filtering.
+    useEffect(() => {
+        if (!isOpen) return;
+
+        setFormData(current => ({
+            ...current,
+            category: initialCategory || '',
+            subCategory: initialCategory ? initialSubCategory || '' : '',
+        }));
+    }, [isOpen, initialCategory, initialSubCategory]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -391,7 +411,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                                                     required
                                                     value={formData.category}
                                                     onChange={handleChange}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
+                                                    className="supplier-category-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white text-gray-900"
                                                 >
                                                     <option value="">Select Category</option>
                                                     {categories.map(cat => (
@@ -410,7 +430,7 @@ export function AddSupplierSheet({ isOpen, onClose, onSuccess }: AddSupplierShee
                                                     value={formData.subCategory}
                                                     onChange={handleChange}
                                                     disabled={!formData.category}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white disabled:bg-gray-50"
+                                                    className="supplier-category-select w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
                                                 >
                                                     <option value="">Select Sub-category</option>
                                                     {getSubCategories().map(sub => (

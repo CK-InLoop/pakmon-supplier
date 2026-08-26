@@ -347,3 +347,15 @@ body {
   border-radius: 0.5rem;
   font-size: 0.875rem;
 }
+
+/* Keep native category selects readable on devices using a dark OS theme. */
+.supplier-category-select {
+  color: #111827;
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
+.supplier-category-select option {
+  color: #111827;
+  background-color: #ffffff;
+}
