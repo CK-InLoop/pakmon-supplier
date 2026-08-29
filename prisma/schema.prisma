@@ -111,14 +111,15 @@ model suppliers {
 
 // Product model - enhanced with all necessary fields
 model products {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  supplierId String    @db.ObjectId
-  supplier   suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String?    @db.ObjectId
+  supplier   suppliers? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   // Basic info
   name             String?
   title            String?  // Display title
-  category         String
+  category         String?  // Made optional for direct subcategory products
+  subCategory      String?  // Direct link to subcategory (for products not under suppliers)
   description      String
   shortDescription String?  // Brief summary
   fullDescription  String?  // Detailed description

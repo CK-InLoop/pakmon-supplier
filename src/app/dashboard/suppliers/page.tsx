@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search, Pencil } from 'lucide-react';
+import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search, Pencil, Box } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getSuppliers } from '@/app/actions/suppliers';
 import { AddSupplierSheet } from './add-supplier-sheet';
 import { EditSupplierSheet } from './edit-supplier-sheet';
+import { AddProductSheet } from './add-product-sheet';
 
 interface Supplier {
     id: string;
@@ -28,6 +29,7 @@ export default function SuppliersPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -92,13 +94,22 @@ export default function SuppliersPage() {
                             : 'Manage your supplier network'}
                     </p>
                 </div>
-                <button
-                    onClick={() => setIsSheetOpen(true)}
-                    className="flex-shrink-0 whitespace-nowrap flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
-                >
-                    <Plus className="w-5 h-5" />
-                    Add Supplier
-                </button>
+                <div className="flex gap-3 flex-wrap">
+                    <button
+                        onClick={() => setIsProductSheetOpen(true)}
+                        className="flex-shrink-0 whitespace-nowrap flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
+                    >
+                        <Box className="w-5 h-5" />
+                        Add Product
+                    </button>
+                    <button
+                        onClick={() => setIsSheetOpen(true)}
+                        className="flex-shrink-0 whitespace-nowrap flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Add Supplier
+                    </button>
+                </div>
             </div>
 
             {/* Search */}
@@ -230,6 +241,16 @@ export default function SuppliersPage() {
                 initialCategory={selectedCategory}
                 initialSubCategory={selectedSubCategory}
                 onClose={() => setIsSheetOpen(false)}
+                onSuccess={() => {
+                    fetchSuppliers();
+                }}
+            />
+
+            <AddProductSheet
+                isOpen={isProductSheetOpen}
+                initialCategory={selectedCategory}
+                initialSubCategory={selectedSubCategory}
+                onClose={() => setIsProductSheetOpen(false)}
                 onSuccess={() => {
                     fetchSuppliers();
                 }}
