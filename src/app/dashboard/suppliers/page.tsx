@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search, Pencil, Box } from 'lucide-react';
+import { Plus, Building2, MapPin, Phone, Mail, Package, ArrowRight, Search, Pencil, Box, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getSuppliers } from '@/app/actions/suppliers';
 import { AddSupplierSheet } from './add-supplier-sheet';
 import { EditSupplierSheet } from './edit-supplier-sheet';
 import { AddProductSheet } from './add-product-sheet';
+import { EditProductSheet } from './edit-product-sheet';
 
 interface Supplier {
     id: string;
@@ -43,8 +44,11 @@ export default function SuppliersPage() {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+    const [isEditProductSheetOpen, setIsEditProductSheetOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<DirectProduct | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
     const searchParams = useSearchParams();
     const selectedCategory = searchParams.get('category') || undefined;
     const selectedSubCategory = searchParams.get('subCategory') || undefined;
@@ -101,6 +105,34 @@ export default function SuppliersPage() {
     const handleEditSupplier = (supplier: Supplier) => {
         setSelectedSupplier(supplier);
         setIsEditSheetOpen(true);
+    };
+
+    const handleEditProduct = (product: DirectProduct) => {
+        setSelectedProduct(product);
+        setIsEditProductSheetOpen(true);
+    };
+
+    const handleDeleteProduct = (id: string, name: string) => {
+        setDeleteConfirm({ id, name });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm) return;
+
+        try {
+            const { deleteProduct } = await import('@/app/actions/products');
+            const result = await deleteProduct(deleteConfirm.id);
+
+            if (result.success) {
+                setDeleteConfirm(null);
+                await fetchSuppliers(); // Refresh the list
+            } else {
+                alert(result.error || 'Failed to delete product');
+            }
+        } catch (error) {
+            console.error('Failed to delete product:', error);
+            alert('Failed to delete product');
+        }
     };
 
     return (
@@ -272,39 +304,74 @@ export default function SuppliersPage() {
                         <span className="text-sm text-gray-600">{directProducts.length} product{directProducts.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {directProducts.map((product) => (
-                            <div
-                                key={product.id}
-                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-blue-100 overflow-hidden"
-                            >
-                                <div className="p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="p-2 bg-blue-50 rounded-lg">
-                                            <Box className="w-5 h-5 text-blue-600" />
-                                        </div>
-                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                                            Direct Product
-                                        </span>
+                        {directProducts.map((product) => {
+                            const mainImage = Array.isArray(product.images) && product.images.length > 0
+                                ? product.images[0]
+                                : null;
+
+                            return (
+                                <div
+                                    key={product.id}
+                                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-blue-100 overflow-hidden"
+                                >
+                                    {/* Product Image */}
+                                    <div className="relative h-48 bg-gray-50">
+                                        {mainImage ? (
+                                            <img
+                                                src={mainImage}
+                                                alt={product.title || product.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full">
+                                                <Box className="w-16 h-16 text-gray-300" />
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">
-                                        {product.title || product.name || 'Untitled Product'}
-                                    </h3>
+                                    {/* Product Details */}
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
+                                                    {product.title || product.name || 'Untitled Product'}
+                                                </h3>
+                                                <span className="inline-block text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                                    Direct Product
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                    {product.shortDescription && (
-                                        <p className="text-xs text-gray-600 line-clamp-2 mb-3">
-                                            {product.shortDescription}
-                                        </p>
-                                    )}
+                                        {product.shortDescription && (
+                                            <p className="text-xs text-gray-600 line-clamp-2 mb-3">
+                                                {product.shortDescription}
+                                            </p>
+                                        )}
 
-                                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                        <span className="text-xs text-gray-500">
+                                        <div className="text-xs text-gray-500 mb-4">
                                             Added {new Date(product.createdAt).toLocaleDateString()}
-                                        </span>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleEditProduct(product)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition"
+                                            >
+                                                <Pencil className="w-3 h-3" />
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProduct(product.id, product.title || product.name || 'this product')}
+                                                className="flex items-center justify-center px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -340,6 +407,52 @@ export default function SuppliersPage() {
                     fetchSuppliers();
                 }}
             />
+
+            <EditProductSheet
+                isOpen={isEditProductSheetOpen}
+                product={selectedProduct}
+                onClose={() => {
+                    setIsEditProductSheetOpen(false);
+                    setSelectedProduct(null);
+                }}
+                onSuccess={() => {
+                    fetchSuppliers();
+                }}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-red-100 rounded-full">
+                                <Trash2 className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">Delete Product</h3>
+                        </div>
+                        
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to delete <span className="font-semibold text-gray-900">{deleteConfirm.name}</span>? 
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition font-semibold"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
