@@ -212,6 +212,19 @@ export async function updateProduct(id: string, data: {
 
 export async function deleteProduct(id: string) {
     try {
+        // First check if the product exists
+        const existingProduct = await prisma.products.findUnique({
+            where: { id },
+        });
+
+        if (!existingProduct) {
+            return {
+                success: false,
+                error: 'Product not found.'
+            };
+        }
+
+        // Delete the product - cascade deletes will handle related records
         await prisma.products.delete({
             where: { id },
         });
@@ -221,6 +234,15 @@ export async function deleteProduct(id: string) {
         return { success: true };
     } catch (error: any) {
         console.error('Error deleting product:', error);
+        
+        // Check if it's a "record not found" error (which means it was already deleted)
+        if (error.code === 'P2025' || error.message?.includes('Record to delete does not exist')) {
+            // Product doesn't exist anymore, consider it a success
+            revalidatePath('/dashboard/suppliers');
+            revalidatePath('/dashboard/products');
+            return { success: true };
+        }
+        
         return {
             success: false,
             error: error.message || 'Failed to delete product.'

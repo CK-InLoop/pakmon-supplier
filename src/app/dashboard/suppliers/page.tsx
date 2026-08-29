@@ -31,9 +31,16 @@ interface DirectProduct {
     title?: string;
     name?: string;
     shortDescription?: string;
+    fullDescription?: string;
+    specifications?: string;
     category?: string;
     subCategory?: string;
     images: string[];
+    pdfFiles?: string[];
+    priceRange?: string;
+    capacity?: string;
+    tags?: string[];
+    youtubeUrl?: string;
     createdAt: Date;
 }
 
