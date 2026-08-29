@@ -59,7 +59,6 @@ export async function createDirectProduct(data: {
                 pdfFiles: pdfFiles || [],
                 youtubeUrl,
                 availability: 'available',
-                status: 'APPROVED', // Direct products are auto-approved
             },
         });
 

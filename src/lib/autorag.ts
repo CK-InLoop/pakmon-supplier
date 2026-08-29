@@ -1,6 +1,6 @@
 interface ChunkMetadata {
   productId: string;
-  supplierId: string;
+  supplierId: string | null;
   title: string;
   tags: string[];
   images: string[];
@@ -38,7 +38,9 @@ export async function ingestToAutoRAG(chunks: AutoRAGChunk[]): Promise<void> {
             metadata: {
               ...chunk.metadata,
               timestamp: Date.now(),
-              folder: `products/${chunk.metadata.supplierId}/`,
+              folder: chunk.metadata.supplierId 
+                ? `products/${chunk.metadata.supplierId}/`
+                : 'products/direct/',
             },
           },
         ],
@@ -115,7 +117,7 @@ export function chunkText(text: string, maxTokens: number = 500, overlap: number
 
 export async function createProductChunks(product: {
   id: string;
-  supplierId: string;
+  supplierId: string | null;
   title?: string | null;
   name?: string | null;
   shortDescription?: string | null;

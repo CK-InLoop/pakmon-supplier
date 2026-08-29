@@ -38,6 +38,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if product has a supplier (direct products don't have suppliers)
+    if (!product.supplierId) {
+      return NextResponse.json(
+        { error: 'This product does not have an associated supplier for inquiries' },
+        { status: 400 }
+      );
+    }
+
     // Create inquiry (no userId on inquiries - uses customer contact info instead)
     const inquiry = await prisma.inquiries.create({
       data: {
