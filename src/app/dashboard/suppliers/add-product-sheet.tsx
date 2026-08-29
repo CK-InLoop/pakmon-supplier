@@ -281,6 +281,12 @@ export function AddProductSheet({
             const fileUrls = files.filter(f => f.url).map(f => f.url!);
             const tags = formData.tags ? formData.tags.split(',').map(t => t.trim()) : [];
 
+            console.log('📤 Submitting direct product...', {
+                category: formData.category,
+                subCategory: formData.subCategory,
+                title: formData.title
+            });
+
             const result = await createDirectProduct({
                 title: formData.title,
                 shortDescription: formData.shortDescription,
@@ -296,7 +302,10 @@ export function AddProductSheet({
                 youtubeUrl: formData.youtubeUrl || undefined,
             });
 
+            console.log('📥 Result:', result);
+
             if (result.success) {
+                console.log('✓ Product created successfully!');
                 setFormData({
                     title: '',
                     shortDescription: '',
@@ -314,9 +323,11 @@ export function AddProductSheet({
                 onSuccess();
                 onClose();
             } else {
+                console.error('❌ Failed to create product:', result.error);
                 setError(result.error || 'Failed to create product');
             }
         } catch (err) {
+            console.error('❌ Exception during submission:', err);
             setError('An unexpected error occurred');
         } finally {
             setLoading(false);

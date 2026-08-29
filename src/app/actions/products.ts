@@ -18,6 +18,9 @@ export async function createDirectProduct(data: {
     youtubeUrl?: string;
 }) {
     try {
+        console.log('=== createDirectProduct called ===');
+        console.log('Data received:', JSON.stringify(data, null, 2));
+        
         const {
             title,
             shortDescription,
@@ -35,11 +38,20 @@ export async function createDirectProduct(data: {
 
         // Validation
         if (!title || !shortDescription || !fullDescription || !category || !subCategory) {
+            console.log('❌ Validation failed');
             return {
                 success: false,
                 error: 'Title, descriptions, category, and subcategory are required.'
             };
         }
+
+        console.log('✓ Validation passed');
+        console.log('Creating product with:', {
+            title,
+            category,
+            subCategory,
+            supplierId: null
+        });
 
         // Create product without supplier (directly under subcategory)
         const newProduct = await prisma.products.create({
@@ -62,11 +74,17 @@ export async function createDirectProduct(data: {
             },
         });
 
+        console.log('✓ Product created successfully:', newProduct.id);
         revalidatePath('/dashboard/suppliers');
         revalidatePath('/dashboard/products');
         return { success: true, product: newProduct };
     } catch (error: any) {
-        console.error('Error creating direct product:', error);
+        console.error('❌ Error creating direct product:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta
+        });
         return {
             success: false,
             error: error.message || 'Failed to create product.'
