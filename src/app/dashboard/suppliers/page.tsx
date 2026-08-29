@@ -25,8 +25,20 @@ interface Supplier {
     };
 }
 
+interface DirectProduct {
+    id: string;
+    title?: string;
+    name?: string;
+    shortDescription?: string;
+    category?: string;
+    subCategory?: string;
+    images: string[];
+    createdAt: Date;
+}
+
 export default function SuppliersPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [directProducts, setDirectProducts] = useState<DirectProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
@@ -52,6 +64,22 @@ export default function SuppliersPage() {
             });
             if (result.success && result.suppliers) {
                 setSuppliers(result.suppliers as any);
+            }
+
+            // Also fetch direct products for this category/subcategory
+            if (selectedCategory && selectedSubCategory) {
+                const { getProducts } = await import('@/app/actions/products');
+                const productsResult = await getProducts({
+                    category: selectedCategory,
+                    subCategory: selectedSubCategory,
+                });
+                if (productsResult.success && productsResult.products) {
+                    // Filter only products without suppliers (direct products)
+                    const direct = productsResult.products.filter((p: any) => !p.supplierId);
+                    setDirectProducts(direct as any);
+                }
+            } else {
+                setDirectProducts([]);
             }
         } catch (error) {
             console.error('Failed to fetch suppliers:', error);
@@ -233,6 +261,51 @@ export default function SuppliersPage() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Direct Products Section */}
+            {selectedCategory && selectedSubCategory && directProducts.length > 0 && (
+                <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">Direct Products in this Subcategory</h2>
+                        <span className="text-sm text-gray-600">{directProducts.length} product{directProducts.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {directProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-blue-100 overflow-hidden"
+                            >
+                                <div className="p-4">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="p-2 bg-blue-50 rounded-lg">
+                                            <Box className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                            Direct Product
+                                        </span>
+                                    </div>
+
+                                    <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">
+                                        {product.title || product.name || 'Untitled Product'}
+                                    </h3>
+
+                                    {product.shortDescription && (
+                                        <p className="text-xs text-gray-600 line-clamp-2 mb-3">
+                                            {product.shortDescription}
+                                        </p>
+                                    )}
+
+                                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                        <span className="text-xs text-gray-500">
+                                            Added {new Date(product.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
