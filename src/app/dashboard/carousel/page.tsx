@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Trash2, Loader2, X, ImageIcon, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Loader2, X, ImageIcon, CheckCircle, AlertCircle, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
-import { getAllCarouselImages, addCarouselImage, deleteCarouselImage, toggleCarouselImageActive } from '@/app/actions/carousel';
+import { getAllCarouselImages, addCarouselImage, deleteCarouselImage, toggleCarouselImageActive, reorderCarouselImages } from '@/app/actions/carousel';
 
 interface CarouselImage {
     id: string;
@@ -30,6 +30,7 @@ export default function CarouselPage() {
     const [isAddingImage, setIsAddingImage] = useState(false);
     const [uploadingImage, setUploadingImage] = useState<UploadingImage | null>(null);
     const [saving, setSaving] = useState(false);
+    const [reordering, setReordering] = useState(false);
     const [error, setError] = useState('');
 
     const fetchImages = async () => {
@@ -161,6 +162,30 @@ export default function CarouselPage() {
         }
     };
 
+    const moveImage = async (fromIndex: number, direction: -1 | 1) => {
+        const toIndex = fromIndex + direction;
+        if (reordering || toIndex < 0 || toIndex >= images.length) return;
+
+        const reorderedImages = [...images];
+        [reorderedImages[fromIndex], reorderedImages[toIndex]] = [reorderedImages[toIndex], reorderedImages[fromIndex]];
+
+        setReordering(true);
+        setImages(reorderedImages);
+        try {
+            const result = await reorderCarouselImages(reorderedImages.map((image) => image.id));
+            if (!result.success) {
+                setError(result.error || 'Unable to reorder carousel images.');
+                fetchImages();
+            }
+        } catch (error) {
+            console.error('Error reordering carousel images:', error);
+            setError('Unable to reorder carousel images.');
+            fetchImages();
+        } finally {
+            setReordering(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -173,7 +198,7 @@ export default function CarouselPage() {
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Carousel Images</h1>
-                        <p className="text-gray-600 mt-1">Manage homepage slider images</p>
+                        <p className="text-gray-600 mt-1">Manage homepage slider images and their display order</p>
                     </div>
                 </div>
                 <button
@@ -367,6 +392,31 @@ export default function CarouselPage() {
                                     >
                                         {image.isActive ? 'Active' : 'Show'}
                                     </button>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                                    <span className="text-xs font-medium text-gray-500">Display order</span>
+                                    <div className="flex gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => moveImage(index, -1)}
+                                            disabled={index === 0 || reordering}
+                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                            aria-label={`Move ${image.title || `slide ${index + 1}`} earlier`}
+                                            title="Move earlier"
+                                        >
+                                            <ChevronUp className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => moveImage(index, 1)}
+                                            disabled={index === images.length - 1 || reordering}
+                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                            aria-label={`Move ${image.title || `slide ${index + 1}`} later`}
+                                            title="Move later"
+                                        >
+                                            <ChevronDown className="h-4 w-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

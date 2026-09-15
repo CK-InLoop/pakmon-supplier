@@ -92,6 +92,41 @@ export async function toggleCarouselImageActive(id: string, isActive: boolean) {
     }
 }
 
+export async function reorderCarouselImages(orderedIds: string[]) {
+    try {
+        const images = await prisma.carouselImages.findMany({
+            select: { id: true },
+        });
+        const imageIds = new Set(images.map((image) => image.id));
+        const suppliedIds = new Set(orderedIds);
+
+        if (
+            orderedIds.length !== images.length ||
+            suppliedIds.size !== images.length ||
+            orderedIds.some((id) => !imageIds.has(id))
+        ) {
+            return { success: false, error: 'The carousel list changed. Please refresh and try again.' };
+        }
+
+        await Promise.all(
+            orderedIds.map((id, index) =>
+                prisma.carouselImages.update({
+                    where: { id },
+                    data: { order: index + 1 },
+                })
+            )
+        );
+
+        revalidatePath('/');
+        revalidatePath('/dashboard');
+        revalidatePath('/dashboard/carousel');
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error reordering carousel images:', error);
+        return { success: false, error: error.message || 'Failed to reorder carousel images.' };
+    }
+}
+
 export async function getCarouselImagesCount() {
     try {
         const count = await prisma.carouselImages.count({
