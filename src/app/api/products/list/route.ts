@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get('supplierId');
     const category = searchParams.get('category');
+    const subCategory = searchParams.get('subCategory');
     const hasMatches = searchParams.get('hasMatches') === 'true';
 
     const where: any = {};
@@ -39,6 +40,10 @@ export async function GET(req: NextRequest) {
 
     if (category) {
       where.category = category;
+    }
+
+    if (subCategory) {
+      where.subCategory = subCategory;
     }
 
     // Apply additional filters

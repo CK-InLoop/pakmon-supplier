@@ -28,6 +28,13 @@ interface Product {
 interface Category {
   id: string;
   name: string;
+  subCategories: SubCategory[];
+}
+
+interface SubCategory {
+  id: string;
+  name: string;
+  isHeading: boolean;
 }
 
 export default function EditProductPage() {
@@ -51,6 +58,7 @@ export default function EditProductPage() {
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
   const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
   const [selectedTemplateProductId, setSelectedTemplateProductId] = useState('');
   const [categoryProductsLoading, setCategoryProductsLoading] = useState(false);
@@ -80,6 +88,11 @@ export default function EditProductPage() {
         setCategories(result.categories.map((category) => ({
           id: category.id,
           name: category.name,
+          subCategories: category.subCategories.map((subCategory) => ({
+            id: subCategory.id,
+            name: subCategory.name,
+            isHeading: subCategory.isHeading,
+          })),
         })));
       }
     };
@@ -88,7 +101,7 @@ export default function EditProductPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCategory) {
+    if (!selectedCategory || !selectedSubCategory) {
       setCategoryProducts([]);
       setSelectedTemplateProductId('');
       return;
@@ -99,7 +112,7 @@ export default function EditProductPage() {
     setSelectedTemplateProductId('');
     setTemplateMessage('');
 
-    fetch(`/api/products/list?category=${encodeURIComponent(selectedCategory)}`)
+    fetch(`/api/products/list?category=${encodeURIComponent(selectedCategory)}&subCategory=${encodeURIComponent(selectedSubCategory)}`)
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Failed to load products for this category.');
@@ -121,7 +134,17 @@ export default function EditProductPage() {
     return () => {
       isCurrent = false;
     };
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedSubCategory]);
+
+  const selectedCategoryDetails = categories.find((category) => category.name === selectedCategory);
+  const availableSubCategories = selectedCategoryDetails?.subCategories.filter((subCategory) => !subCategory.isHeading) || [];
+
+  const handleTemplateCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedSubCategory('');
+    setSelectedTemplateProductId('');
+    setTemplateMessage('');
+  };
 
   const fetchProduct = async () => {
     try {
@@ -456,12 +479,30 @@ export default function EditProductPage() {
               <select
                 id="template-category"
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => handleTemplateCategoryChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.name}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="template-subcategory" className="block text-sm font-medium text-gray-900 mb-1">
+                Subcategory
+              </label>
+              <select
+                id="template-subcategory"
+                value={selectedSubCategory}
+                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                disabled={!selectedCategory}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+              >
+                <option value="">{selectedCategory ? 'Select a subcategory' : 'Select a category first'}</option>
+                {availableSubCategories.map((subCategory) => (
+                  <option key={subCategory.id} value={subCategory.name}>{subCategory.name}</option>
                 ))}
               </select>
             </div>
@@ -474,11 +515,11 @@ export default function EditProductPage() {
                 id="template-product"
                 value={selectedTemplateProductId}
                 onChange={(e) => applyTemplateProduct(e.target.value)}
-                disabled={!selectedCategory || categoryProductsLoading}
+                disabled={!selectedCategory || !selectedSubCategory || categoryProductsLoading}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
               >
                 <option value="">
-                  {categoryProductsLoading ? 'Loading products...' : selectedCategory ? 'Select a product' : 'Select a category first'}
+                  {categoryProductsLoading ? 'Loading products...' : selectedSubCategory ? 'Select a product' : 'Select a subcategory first'}
                 </option>
                 {categoryProducts.map((candidate) => (
                   <option key={candidate.id} value={candidate.id}>
@@ -486,8 +527,8 @@ export default function EditProductPage() {
                   </option>
                 ))}
               </select>
-              {selectedCategory && !categoryProductsLoading && categoryProducts.length === 0 && (
-                <p className="mt-1 text-sm text-gray-600">No products found in this category.</p>
+              {selectedSubCategory && !categoryProductsLoading && categoryProducts.length === 0 && (
+                <p className="mt-1 text-sm text-gray-600">No products found in this subcategory.</p>
               )}
               <p className="mt-1 text-sm text-gray-600">Selecting a product replaces this form’s details and media; the source product is not changed.</p>
             </div>
