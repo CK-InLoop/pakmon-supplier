@@ -356,7 +356,8 @@ export default function EditProductPage() {
   const handleDelete = async () => {
     if (!product) return;
 
-    if (deleteInput.trim() !== product.title.trim()) {
+    const productTitle = product.title || product.name || '';
+    if (deleteInput.trim() !== productTitle.trim()) {
       setDeleteError('Please type the exact product title to confirm deletion.');
       return;
     }
@@ -815,7 +816,7 @@ export default function EditProductPage() {
             ) : (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-red-800">
-                  Type <span className="font-semibold">"{product.title}"</span> to confirm deletion.
+                  Type <span className="font-semibold">"{product.title || product.name || 'this product'}"</span> to confirm deletion.
                 </label>
                 <input
                   type="text"
