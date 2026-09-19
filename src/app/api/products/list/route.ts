@@ -38,12 +38,24 @@ export async function GET(req: NextRequest) {
       where.supplierId = supplierId;
     }
 
-    if (category) {
-      where.category = category;
-    }
+    // Product records are linked to suppliers. For the template picker, find
+    // products through suppliers assigned to the selected category/subcategory.
+    if (category && subCategory) {
+      where.supplier = {
+        is: {
+          category,
+          subCategory,
+        },
+      };
+    } else {
+      // Retain the direct-product filters for callers that only supply one.
+      if (category) {
+        where.category = category;
+      }
 
-    if (subCategory) {
-      where.subCategory = subCategory;
+      if (subCategory) {
+        where.subCategory = subCategory;
+      }
     }
 
     // Apply additional filters
