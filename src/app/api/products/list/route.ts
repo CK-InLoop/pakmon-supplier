@@ -29,11 +29,16 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get('supplierId');
+    const category = searchParams.get('category');
     const hasMatches = searchParams.get('hasMatches') === 'true';
 
     const where: any = {};
     if (supplierId) {
       where.supplierId = supplierId;
+    }
+
+    if (category) {
+      where.category = category;
     }
 
     // Apply additional filters

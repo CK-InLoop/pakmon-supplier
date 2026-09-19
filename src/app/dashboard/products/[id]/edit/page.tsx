@@ -3,21 +3,31 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { X, FileText, Image as ImageIcon } from 'lucide-react';
+import { getCategories } from '@/app/actions/categories';
 
 interface Product {
   id: string;
-  title: string;
-  shortDescription: string;
-  fullDescription: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  shortDescription?: string;
+  fullDescription?: string;
   specifications?: string;
-  tags: string[];
-  images: string[];
-  pdfFiles: string[];
+  category?: string;
+  subCategory?: string;
+  tags?: string[];
+  images?: string[];
+  pdfFiles?: string[];
   youtubeUrl?: string;
   priceRange?: string;
   capacity?: string;
   signedImageUrls?: string[];
   signedFileUrls?: string[];
+}
+
+interface Category {
+  id: string;
+  name: string;
 }
 
 export default function EditProductPage() {
@@ -36,7 +46,16 @@ export default function EditProductPage() {
     youtubeUrl: '',
     priceRange: '',
     capacity: '',
+    category: '',
+    subCategory: '',
   });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [selectedTemplateProductId, setSelectedTemplateProductId] = useState('');
+  const [categoryProductsLoading, setCategoryProductsLoading] = useState(false);
+  const [templateMessage, setTemplateMessage] = useState('');
+  const [mediaWasReplaced, setMediaWasReplaced] = useState(false);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
@@ -53,6 +72,56 @@ export default function EditProductPage() {
   useEffect(() => {
     fetchProduct();
   }, [productId]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const result = await getCategories();
+      if (result.success && result.categories) {
+        setCategories(result.categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+        })));
+      }
+    };
+
+    fetchCategories().catch(() => setError('Failed to load categories.'));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      setCategoryProducts([]);
+      setSelectedTemplateProductId('');
+      return;
+    }
+
+    let isCurrent = true;
+    setCategoryProductsLoading(true);
+    setSelectedTemplateProductId('');
+    setTemplateMessage('');
+
+    fetch(`/api/products/list?category=${encodeURIComponent(selectedCategory)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load products for this category.');
+        return data.products as Product[];
+      })
+      .then((products) => {
+        if (isCurrent) setCategoryProducts(products);
+      })
+      .catch((err: Error) => {
+        if (isCurrent) {
+          setCategoryProducts([]);
+          setError(err.message);
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setCategoryProductsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedCategory]);
 
   const fetchProduct = async () => {
     try {
@@ -138,12 +207,49 @@ export default function EditProductPage() {
         youtubeUrl: data.product.youtubeUrl || '',
         priceRange: data.product.priceRange || '',
         capacity: data.product.capacity || '',
+        category: data.product.category || '',
+        subCategory: data.product.subCategory || '',
       });
     } catch (err: any) {
       setError(err.message);
     } finally {
       setFetchLoading(false);
     }
+  };
+
+  const applyTemplateProduct = (templateProductId: string) => {
+    setSelectedTemplateProductId(templateProductId);
+    const template = categoryProducts.find((candidate) => candidate.id === templateProductId);
+    if (!template) return;
+
+    const replacementImages = [...(template.images || [])];
+    const replacementFiles = [...(template.pdfFiles || [])];
+
+    setFormData({
+      title: template.title || template.name || '',
+      description: template.fullDescription || template.shortDescription || template.description || '',
+      specs: template.specifications || '',
+      tags: (template.tags || []).join(', '),
+      youtubeUrl: template.youtubeUrl || '',
+      priceRange: template.priceRange || '',
+      capacity: template.capacity || '',
+      category: template.category || selectedCategory,
+      subCategory: template.subCategory || '',
+    });
+    setProduct((current) => current ? {
+      ...current,
+      images: replacementImages,
+      pdfFiles: replacementFiles,
+      signedImageUrls: replacementImages,
+      signedFileUrls: replacementFiles,
+    } : current);
+    setNewImages([]);
+    setNewFiles([]);
+    setNewImagePreviews([]);
+    setDeletedImages([]);
+    setDeletedFiles([]);
+    setMediaWasReplaced(true);
+    setTemplateMessage(`Details copied from ${template.title || template.name || 'the selected product'}. Review them before updating.`);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -203,6 +309,13 @@ export default function EditProductPage() {
       formDataToSend.append('youtubeUrl', formData.youtubeUrl);
       formDataToSend.append('priceRange', formData.priceRange);
       formDataToSend.append('capacity', formData.capacity);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('subCategory', formData.subCategory);
+
+      if (mediaWasReplaced) {
+        formDataToSend.append('replacementImages', JSON.stringify(existingImages));
+        formDataToSend.append('replacementFiles', JSON.stringify(existingFiles));
+      }
 
       newImages.forEach((image) => {
         formDataToSend.append('newImages', image);
@@ -212,11 +325,11 @@ export default function EditProductPage() {
         formDataToSend.append('newFiles', file);
       });
 
-      if (deletedImages.length > 0) {
+      if (!mediaWasReplaced && deletedImages.length > 0) {
         formDataToSend.append('deletedImages', deletedImages.join(','));
       }
 
-      if (deletedFiles.length > 0) {
+      if (!mediaWasReplaced && deletedFiles.length > 0) {
         formDataToSend.append('deletedFiles', deletedFiles.join(','));
       }
 
@@ -333,6 +446,55 @@ export default function EditProductPage() {
           <h2 className="text-xl font-bold text-gray-900">
             Product Information
           </h2>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+            <div>
+              <label htmlFor="template-category" className="block text-sm font-medium text-gray-900 mb-1">
+                Copy details from category
+              </label>
+              <select
+                id="template-category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="template-product" className="block text-sm font-medium text-gray-900 mb-1">
+                Product to copy
+              </label>
+              <select
+                id="template-product"
+                value={selectedTemplateProductId}
+                onChange={(e) => applyTemplateProduct(e.target.value)}
+                disabled={!selectedCategory || categoryProductsLoading}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+              >
+                <option value="">
+                  {categoryProductsLoading ? 'Loading products...' : selectedCategory ? 'Select a product' : 'Select a category first'}
+                </option>
+                {categoryProducts.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>
+                    {candidate.title || candidate.name || 'Untitled product'}{candidate.subCategory ? ` — ${candidate.subCategory}` : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedCategory && !categoryProductsLoading && categoryProducts.length === 0 && (
+                <p className="mt-1 text-sm text-gray-600">No products found in this category.</p>
+              )}
+              <p className="mt-1 text-sm text-gray-600">Selecting a product replaces this form’s details and media; the source product is not changed.</p>
+            </div>
+
+            {templateMessage && (
+              <p role="status" className="text-sm font-medium text-green-700">{templateMessage}</p>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -75,11 +75,13 @@ export async function PATCH(
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const specs = formData.get('specs') as string | null;
-    const tagsString = formData.get('tags') as string;
+    const tagsString = formData.get('tags') as string | null;
     const tags = tagsString ? tagsString.split(',').map(t => t.trim()) : [];
     const youtubeUrl = formData.get('youtubeUrl') as string | null;
     const priceRange = formData.get('priceRange') as string | null;
     const capacity = formData.get('capacity') as string | null;
+    const category = formData.get('category') as string | null;
+    const subCategory = formData.get('subCategory') as string | null;
 
     const existingProduct = await prisma.products.findUnique({
       where: { id },
@@ -92,7 +94,18 @@ export async function PATCH(
       );
     }
 
+    const replacementImagesJson = formData.get('replacementImages') as string | null;
     let images = [...existingProduct.images];
+    if (replacementImagesJson) {
+      try {
+        const replacementImages = JSON.parse(replacementImagesJson);
+        if (Array.isArray(replacementImages) && replacementImages.every((url) => typeof url === 'string')) {
+          images = replacementImages;
+        }
+      } catch (e) {
+        return NextResponse.json({ error: 'Invalid replacement image data' }, { status: 400 });
+      }
+    }
     const newImages = formData.getAll('newImages') as File[];
     for (const image of newImages) {
       if (image.size > 0) {
@@ -125,7 +138,18 @@ export async function PATCH(
     }
 
     // Handle PDF files
+    const replacementFilesJson = formData.get('replacementFiles') as string | null;
     let pdfFiles = [...existingProduct.pdfFiles];
+    if (replacementFilesJson) {
+      try {
+        const replacementFiles = JSON.parse(replacementFilesJson);
+        if (Array.isArray(replacementFiles) && replacementFiles.every((url) => typeof url === 'string')) {
+          pdfFiles = replacementFiles;
+        }
+      } catch (e) {
+        return NextResponse.json({ error: 'Invalid replacement file data' }, { status: 400 });
+      }
+    }
 
     // Check for pre-uploaded PDF URLs (new flow)
     const fileUrlsJson = formData.get('fileUrls') as string | null;
@@ -182,9 +206,11 @@ export async function PATCH(
         youtubeUrl: youtubeUrl !== null ? (youtubeUrl || null) : existingProduct.youtubeUrl,
         priceRange: priceRange !== null ? (priceRange || null) : existingProduct.priceRange,
         capacity: capacity !== null ? (capacity || null) : existingProduct.capacity,
+        category: category !== null ? (category || null) : existingProduct.category,
+        subCategory: subCategory !== null ? (subCategory || null) : existingProduct.subCategory,
         images,
         pdfFiles,
-        tags: tags.length > 0 ? tags : existingProduct.tags,
+        tags: tagsString !== null ? tags : existingProduct.tags,
       },
     });
 
