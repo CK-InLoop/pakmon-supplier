@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadToAzure } from '@/lib/azure-storage';
+import { uploadToR2 } from '@/lib/azure-storage';
 import { createProductChunks, ingestToAutoRAG } from '@/lib/autorag';
 
 // Force dynamic rendering for this route
@@ -89,13 +89,13 @@ export async function POST(req: NextRequest) {
       if (image.size > 0) {
         try {
           const buffer = Buffer.from(await image.arrayBuffer());
-          const url = await uploadToAzure(buffer, image.name, image.type, session.user.id, 'new');
+          const url = await uploadToR2(buffer, image.name, image.type, session.user.id, 'new');
           imageUrls.push(url);
         } catch (error: any) {
-          console.error('Azure image upload error:', error);
+          console.error('R2 image upload error:', error);
           return NextResponse.json(
             {
-              error: 'Failed to upload image to Azure. ' + error.message,
+              error: 'Failed to upload image to R2. ' + error.message,
             },
             { status: 500 }
           );
@@ -109,13 +109,13 @@ export async function POST(req: NextRequest) {
       if (file.size > 0) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
-          const url = await uploadToAzure(buffer, file.name, file.type, session.user.id, 'new');
+          const url = await uploadToR2(buffer, file.name, file.type, session.user.id, 'new');
           fileUrls.push(url);
         } catch (error: any) {
-          console.error('Azure file upload error:', error);
+          console.error('R2 file upload error:', error);
           return NextResponse.json(
             {
-              error: 'Failed to upload file to Azure. ' + error.message,
+              error: 'Failed to upload file to R2. ' + error.message,
             },
             { status: 500 }
           );

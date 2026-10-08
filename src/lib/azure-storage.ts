@@ -1,89 +1,81 @@
 import { ContainerClient } from '@azure/storage-blob';
+import {
+  deleteFromR2 as deleteR2Object,
+  isR2PublicUrl,
+  uploadToR2,
+} from '@/lib/r2-storage';
 
-// SAS URL provided by user
-const AZURE_SAS_URL = process.env.AZURE_SAS_URL || "https://pakmon.blob.core.windows.net/pakmon?sp=racwdl&st=2026-01-05T08:42:31Z&se=2030-12-31T16:57:31Z&spr=https&sv=2024-11-04&sr=c&sig=VDn7ZB931YrJDYORMvPbyRUEBbgMlv%2BhdcyFxgiYg%2Bc%3D";
-
-// Extract SAS token part (everything after the ?)
+const AZURE_SAS_URL = process.env.AZURE_SAS_URL?.trim() || '';
 const SAS_TOKEN = AZURE_SAS_URL.includes('?') ? AZURE_SAS_URL.split('?')[1] : '';
 
 let containerClient: ContainerClient | null = null;
 
-try {
+if (AZURE_SAS_URL) {
+  try {
     containerClient = new ContainerClient(AZURE_SAS_URL);
-} catch (error) {
-    console.error('Failed to initialize Azure ContainerClient:', error);
+  } catch (error) {
+    console.error('Failed to initialize legacy Azure Blob Storage client:', error);
+  }
+}
+
+export function isAzureBlobUrl(blobUrl: string): boolean {
+  try {
+    return new URL(blobUrl).hostname === 'pakmon.blob.core.windows.net';
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Uploads a file to Azure Blob Storage using the SAS URL
+ * Backwards-compatible upload entry point used by existing route handlers.
+ * New uploads are stored in Cloudflare R2; legacy Azure media remains readable.
  */
 export async function uploadToAzure(
-    file: Buffer,
-    filename: string,
-    contentType: string,
-    userId?: string,
-    productId?: string
+  file: Buffer,
+  filename: string,
+  contentType: string,
+  userId?: string,
+  productId?: string,
 ): Promise<string> {
-    if (!containerClient) {
-        throw new Error('Azure Storage Client not initialized. Check your SAS URL.');
-    }
-
-    // Build blob name with folders: suppliers/user_product_timestamp_filename
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const userPart = userId || 'unknown';
-    const productPart = productId || 'new';
-    const blobName = `suppliers/${userPart}_${productPart}_${Date.now()}_${sanitizedFilename}`;
-
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-    try {
-        await blockBlobClient.uploadData(file, {
-            blobHTTPHeaders: { blobContentType: contentType }
-        });
-
-        // The URL property of the blockBlobClient includes the SAS token if initialized with one
-        // We only want the base URL for storage in the DB
-        return blockBlobClient.url.split('?')[0];
-    } catch (error: any) {
-        console.error('Azure Upload Error:', error.message);
-        throw new Error(`Azure Upload Failed: ${error.message}`);
-    }
+  return uploadToR2(file, filename, contentType, userId, productId);
 }
 
 /**
- * Deletes a file from Azure Blob Storage
- * Note: Requires 'd' (delete) permission in SAS token
+ * Deletes media from its current provider. Azure URLs are retained for legacy
+ * records while R2 URLs use the configured R2 public URL as the ownership check.
  */
 export async function deleteFromAzure(blobUrl: string): Promise<void> {
-    if (!containerClient) return;
+  if (isR2PublicUrl(blobUrl)) {
+    await deleteR2Object(blobUrl);
+    return;
+  }
 
-    try {
-        // Extract blob name from URL
-        const url = new URL(blobUrl);
-        const pathParts = url.pathname.split('/');
-        // pathname is /container/blobname...
-        const blobName = pathParts.slice(2).join('/');
+  if (!isAzureBlobUrl(blobUrl) || !containerClient) {
+    return;
+  }
 
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        await blockBlobClient.delete();
-    } catch (error: any) {
-        console.warn('Azure Delete Failed (might be already deleted):', error.message);
-    }
+  try {
+    const url = new URL(blobUrl);
+    const blobName = url.pathname.split('/').slice(2).join('/');
+    await containerClient.getBlockBlobClient(blobName).delete();
+  } catch (error: any) {
+    console.warn('Legacy Azure delete failed:', error.message);
+  }
 }
 
 /**
- * Generates a "signed URL" by appending the SAS token to the base blob URL.
- * Since the user-provided SAS token is long-lived and contains full container permissions,
- * we can simply append it to any blob in the container.
+ * Preserves access to legacy private Azure media. Public R2 URLs and all other
+ * URLs are returned unchanged, so Azure credentials are never added to R2 URLs.
  */
 export function getAzureSignedUrl(blobUrl: string): string {
-    if (!blobUrl) return '';
-    if (!SAS_TOKEN) return blobUrl;
+  if (!blobUrl || !isAzureBlobUrl(blobUrl) || !SAS_TOKEN || blobUrl.includes('?')) {
+    return blobUrl;
+  }
 
-    // Avoid double appending
-    if (blobUrl.includes('?')) {
-        return blobUrl;
-    }
-
-    return `${blobUrl}?${SAS_TOKEN}`;
+  return `${blobUrl}?${SAS_TOKEN}`;
 }
+
+// Temporary aliases allow existing handlers to switch to R2 upload naming while
+// still deleting both legacy Azure and new R2 records during the data migration.
+export { uploadToR2 };
+export const deleteFromR2 = deleteFromAzure;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadToAzure, deleteFromAzure } from '@/lib/azure-storage';
+import { uploadToR2, deleteFromR2 } from '@/lib/azure-storage';
 import { createProductChunks, ingestToAutoRAG, deleteFromAutoRAG } from '@/lib/autorag';
 
 // Force dynamic rendering for this route
@@ -111,12 +111,12 @@ export async function PATCH(
       if (image.size > 0) {
         try {
           const buffer = Buffer.from(await image.arrayBuffer());
-          const url = await uploadToAzure(buffer, image.name, image.type, session.user.id, id);
+          const url = await uploadToR2(buffer, image.name, image.type, session.user.id, id);
           images.push(url);
         } catch (e: any) {
-          console.error('Azure upload failed in PATCH:', e.message);
+          console.error('R2 upload failed in PATCH:', e.message);
           return NextResponse.json(
-            { error: `Failed to upload image to Azure: ${e.message}` },
+            { error: `Failed to upload image to R2: ${e.message}` },
             { status: 500 }
           );
         }
@@ -129,9 +129,9 @@ export async function PATCH(
       const imagesToDelete = deletedImages.split(',');
       for (const imageUrl of imagesToDelete) {
         try {
-          await deleteFromAzure(imageUrl);
+          await deleteFromR2(imageUrl);
         } catch (e) {
-          console.warn('Azure delete failed:', e);
+          console.warn('R2 delete failed:', e);
         }
         images = images.filter(url => url !== imageUrl);
       }
@@ -168,12 +168,12 @@ export async function PATCH(
       if (file.size > 0) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
-          const url = await uploadToAzure(buffer, file.name, file.type, session.user.id, id);
+          const url = await uploadToR2(buffer, file.name, file.type, session.user.id, id);
           pdfFiles.push(url);
         } catch (e: any) {
-          console.error('Azure PDF upload failed in PATCH:', e.message);
+          console.error('R2 PDF upload failed in PATCH:', e.message);
           return NextResponse.json(
-            { error: `Failed to upload PDF to Azure: ${e.message}` },
+            { error: `Failed to upload PDF to R2: ${e.message}` },
             { status: 500 }
           );
         }
@@ -186,9 +186,9 @@ export async function PATCH(
       const filesToDelete = deletedFiles.split(',');
       for (const fileUrl of filesToDelete) {
         try {
-          await deleteFromAzure(fileUrl);
+          await deleteFromR2(fileUrl);
         } catch (e) {
-          console.warn('Azure PDF delete failed:', e);
+          console.warn('R2 PDF delete failed:', e);
         }
         pdfFiles = pdfFiles.filter(url => url !== fileUrl);
       }
@@ -254,12 +254,12 @@ export async function DELETE(
       );
     }
 
-    // Delete associated files from Azure
+    // Delete associated files from R2
     for (const imageUrl of product.images) {
-      try { await deleteFromAzure(imageUrl); } catch (e) { }
+      try { await deleteFromR2(imageUrl); } catch (e) { }
     }
     for (const pdfUrl of product.pdfFiles) {
-      try { await deleteFromAzure(pdfUrl); } catch (e) { }
+      try { await deleteFromR2(pdfUrl); } catch (e) { }
     }
 
     await prisma.products.delete({ where: { id } });

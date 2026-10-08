@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { uploadToAzure } from '@/lib/azure-storage';
+import { uploadToR2 } from '@/lib/azure-storage';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Log file details for debugging
-        console.log(`Uploading file to Azure: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
+        console.log(`Uploading file to R2: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
 
         // Validate file type
         if (type === 'image' && !file.type.startsWith('image/')) {
@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
         // Convert file to buffer before retry loop (avoid re-reading)
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        // Upload to Azure with retry logic
+        // Upload to R2 with retry logic
         const url = await retryWithBackoff(
-            () => uploadToAzure(buffer, file.name, file.type, session.user.id, 'new'),
+            () => uploadToR2(buffer, file.name, file.type, session.user.id, 'new'),
             3, // max 3 retries
             1000 // 1 second initial delay
         );
